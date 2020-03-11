@@ -2,9 +2,9 @@
 
 ## 介绍 Introduction
 
-一个作用于任何页面的、用于方便地比较截图的脚本。多用于各大PT站点的对比截图比较，灵感来自于PTP的截图比较脚本，但源码完全不同。
+一个作用于任何页面的、用于方便地比较截图的用户脚本。多用于各大PT站点的对比截图比较，灵感来自于PTP的截图比较脚本，但源码完全不同。
 
-**Easy Compare** is a script, that applied to any page, aiming to make screenshot comparison handy. This can be widely used in many PT sites. The idea comes from the official **PTP Show comparison** script, but the code is completely original.
+**Easy Compare** is a userscript, that applied to any page, aiming to make screenshot comparison handy. This can be widely used in many PT sites. The idea comes from the official **PTP Show comparison** script, but the code is completely original.
 
 ## 特性 Features
 
