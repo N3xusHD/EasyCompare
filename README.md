@@ -1,5 +1,4 @@
-![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/icon.svg?sanitize=true)
-# Easy Compare
+# Easy Compare ![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/icon.svg?sanitize=true)
 
 ## 介绍 Introduction
 
@@ -42,46 +41,19 @@
 - 配合快捷键可以进行一些便捷操作，包括：
 
     Several hot-keys are supported for better user experience, including:
-  
-  - `Esc`: 退出截图比较模式；
-
-    `Esc`: Deactivate compare mode;
-  
-  - `Q/q`: 半透明化截图比较界面，以便显示出原页面中的元素；
-
-    `Q/q`: Semi-transparentize the interface, allowing user to view the elements on the page;
-  
-  - `W/w`: 跳到往前数第 `num` 张图片显示原图；
-
-    `W/w`: Jump to the nth previous image and display the original image of it;
-  
-  - `E/e`: 跳到往后数第 `num` 张图片显示原图；
-
-    `E/e`: Jump to the nth next image and display the original image of it;
-  
-  - `数字键`: `num` 的值，默认是 `1`，有效值为 `0`-`9`，`0` 代表 `10`；
-  
-    `Num Key`: The value of `n` in "nth". `0`-`9` are valid numbers and `0` is recognized as `10`;
-  
-  - `Shift`: 用于激活 Image Diff；
-
-    `Shift`: Activate Image Diff;
-  
-  - `ArrowUp/I/i`: 增加 Image Diff 阈值（0-1），降低敏感度；
-
-    `ArrowUp/I/i`: Increase Image Diff threshold and decrease sensitivity;
-  
-  - `ArrowDown/K/k`: 降低 Image Diff 阈值（0-1），增加敏感度；
-
-    `ArrowDown/K/k`: Decrease Image Diff threshold and increase sensitivity;
-  
-  - `ArrowLeft/J/j`: 增加阈值调整步长；
-
-    `ArrowLeft/J/j`: Increase the step when adjusting the threshold.
-  
-  - `ArrowRight/L/l`: 减小阈值调整步长；
-
-    `ArrowRight/L/l`: Decrease the step when adjusting the threshold.
+    
+    | 键 Key | 功能 | Function |
+    | :---: | ------------- | ----------------------- |
+    | `Esc` | 退出截图比较模式 | Deactivate compare mode |
+    | `Q/q` | 半透明化截图比较界面，以便显示出原页面中的元素 | Semi-transparentize the interface, allowing user to view the elements on the page |
+    | `W/w` | 跳到往前数第 `num` 张图片显示原图 | Jump to the nth previous image and display the original image of it |
+    | `E/e` | 跳到往后数第 `num` 张图片显示原图 | Jump to the nth next image and display the original image of it |
+    | `Num Key` | `num` 的值，默认是 `1`，有效值为 `0`-`9`，`0` 代表 `10` | The value of `n` in "nth". `0`-`9` are valid numbers and `0` is recognized as `10` |
+    | `Shift` | 用于激活 Image Diff | Activate Image Diff |
+    | `ArrowUp/I/i` | 增加 Image Diff 阈值（0-1），降低敏感度 | Increase Image Diff threshold and decrease sensitivity |
+    | `ArrowDown/K/k` | 降低 Image Diff 阈值（0-1），增加敏感度 | Decrease Image Diff threshold and increase sensitivity |
+    | `ArrowLeft/J/j` | 增加阈值调整步长 | Increase the step when adjusting the threshold |
+    | `ArrowRight/L/l` | 减小阈值调整步长 | Decrease the step when adjusting the threshold |
 
 ## 待办 TODOs
 
@@ -125,11 +97,17 @@
 
    ![Demo](https://github.com/Sec-ant/Easy-Compare/blob/master/demo1.gif?raw=true)
 
+## 安装 Installation
+
+请到 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) 页面，配合 [TamperMonkey](https://www.tampermonkey.net/) 浏览器扩展安装使用。
+
+Please go to [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) and install the usersript with [TamperMonkey](https://www.tampermonkey.net/) extension.
+
 ## 贡献 Contribution
 
-本脚本暂时不开放多人编辑权限，如有问题和想法请先到[反馈页面](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback)提交。
+本脚本暂时不开放多人编辑权限，如有问题和想法请先到[Greasy Fork反馈页面](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback)或[Github Issues页面](https://github.com/Sec-ant/Easy-Compare/issues)提交。
 
-The script is not open for contribution for now. Please refer to the [feedback page](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback) in case of any problems or suggestions.
+The script is not open for contribution for now. Please refer to the [Greasy Fork feedback page](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback) or [Github Issues](https://github.com/Sec-ant/Easy-Compare/issues) in case of any problems or suggestions.
 
 ## 许可 License
 
