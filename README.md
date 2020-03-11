@@ -1,3 +1,4 @@
+![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/icon.svg?sanitize=true)
 # Easy Compare
 
 ## 介绍 Introduction
@@ -122,7 +123,7 @@
 
 ## 演示 Demo
 
-   ![Demo](https://images2.imgbox.com/9f/8a/vmbJqkjb_o.gif)
+   ![Demo](https://github.com/Sec-ant/Easy-Compare/blob/master/demo1.gif?raw=true)
 
 ## 贡献 Contribution
 
