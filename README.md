@@ -95,7 +95,9 @@
 
 ## 演示 Demo
 
-   ![Demo](https://github.com/Sec-ant/Easy-Compare/blob/master/demo1.gif?raw=true)
+   | Compare | Diff |
+   | :-----: | :--: |
+   | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/demo1.gif) | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/demo2.gif) |
 
 ## 安装 Installation
 
