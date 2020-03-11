@@ -101,9 +101,9 @@
 
 ## 安装 Installation
 
-请到 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) 页面，配合 [TamperMonkey](https://www.tampermonkey.net/) 浏览器扩展安装使用。
+请到 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) 页面，配合 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展安装使用。
 
-Please go to [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) and install the usersript with [TamperMonkey](https://www.tampermonkey.net/) extension.
+Please go to [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) and install the usersript with [Tampermonkey](https://www.tampermonkey.net/) extension.
 
 ## 贡献 Contribution
 
