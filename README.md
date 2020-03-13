@@ -43,6 +43,10 @@
 - 支持 **solar curve** 曲线滤镜，使用该滤镜可以很清晰地看到图像中的色带等瑕疵；
 
   **Solar curve** filter is supported for better recognition of bandings or other defects in the image, making it more friendly to human eyes;
+  
+  | Comparisons of bandings under solar curve filter |
+  | :-------------------------------: |
+  | ![Bandings under solar curve filter](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/bandings%20under%20solar%20curve%20filter.png) |
 
 - 配合快捷键可以进行一些便捷操作，包括：
 
