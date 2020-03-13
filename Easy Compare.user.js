@@ -459,7 +459,7 @@
     if (target.easyCompare && target.easyCompare.originalImage) {
       return (target.easyCompare.originalImage);
     } else {
-      const originalImage = makeImage(text2SVGDataURL(`Loading ...`, 80))[0];
+      const originalImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
       originalImage.targetImage = target;
       $overlay.append(originalImage);
       if (!target.easyCompare) {
@@ -512,7 +512,7 @@
       target.easyCompare[base.src].baseImage = base;
       return target.easyCompare[base.src];
     } else {
-      const diffedImage = makeImage(text2SVGDataURL(`Loading ...`, 80))[0];
+      const diffedImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
       diffedImage.targetImage = target;
       diffedImage.baseImage = base;
       diffedImage.threshold = -1;
