@@ -1,4 +1,3 @@
-![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/icon%20green.svg?sanitize=true)
 # Easy Compare
 
 ## 介绍 Introduction
@@ -34,7 +33,6 @@
 - 支持 **Image Diff**，即像素级别比较两张图片中的差异并通过颜色标出。该功能需配合 `Shift` 键使用，按下 `Shift` 键时，当前活动图片会作为基准图片，通过鼠标或键盘快捷键移动到其他图片上时（移动时需按住 `Shift` 不放），便会将基准图片与该图片进行比较，比较结束后结果会显示在浏览器中央，并可通过 `ArrowUp`、`ArrowDown`、`ArrowLeft`、`ArrowRight` 或 `I/i`、`K/k`、`J/j`、`L/l` 快捷键调整该比较的阈值/敏感度。该功能核心代码来自于[mapbox/pixelmatch](https://github.com/mapbox/pixelmatch)；
 
   注意：
-
   - Image Diff 使用 `<canvas>` 元素实现 PNG 的解码，目前尚不支持 10bit；
   - 部分网站内容安全策略会限定内容来源，因此会无法使用此功能；
   - Image Diff 支持 objectURL/dataURL Web Worker，但与站点的内容安全策略有关。若站点不支持，则会退化为单线程阻塞模式。
@@ -104,9 +102,9 @@
 
 |     功能 Feature     |                                          演示 Demo                                           |
 | :------------------: | :------------------------------------------------------------------------------------------: |
-| 肉眼比较 Human eyes  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo1.gif) |
-| 像素比较 Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
-| 彩虹曲线 Solar Curve | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
+| 肉眼比较<br>Human eyes  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo1.gif) |
+| 像素比较<br>Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
+| 彩虹曲线<br>Solar Curve | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
 
 ## 安装 Installation
 
