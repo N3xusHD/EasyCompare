@@ -13,7 +13,7 @@
   
   > Move the mouse cursor to the upper right of the page and try to find the button (in grey), wait till it turns into green and click it to active compare mode;
   
-  ![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/icon%20green.svg?sanitize=true) ![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/icon%20gray.svg?sanitize=true)
+  ![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/icon%20gray.svg?sanitize=true) ![icon](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/icon%20green.svg?sanitize=true)
 
 - 可以在任何页面“就地”进行截图对比，无需重新下载上传；
 
@@ -104,9 +104,9 @@
 
 |     功能 Feature     |                                          演示 Demo                                           |
 | :------------------: | :------------------------------------------------------------------------------------------: |
-| 肉眼比较 Human eyes  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/demo1.gif) |
-| 像素比较 Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/demo2.gif) |
-| 彩虹曲线 Solar Curve | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/demo3.gif) |
+| 肉眼比较 Human eyes  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo1.gif) |
+| 像素比较 Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
+| 彩虹曲线 Solar Curve | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
 
 ## 安装 Installation
 
