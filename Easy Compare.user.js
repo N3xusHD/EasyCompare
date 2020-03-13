@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.3
+// @version            0.4
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -130,6 +130,7 @@
     [/thumbs((?:\d+)?\.imgbox\.com\/.+_)t\.png$/, 'images$1o.png'], // imgbox
     [/t((?:\d+)?\.pixhost\.to\/)thumbs\//, 'img$1images/'], // pixhost
     [/t(\.hdbits\.org\/.+)\.jpg$/, 'i$1.png'], // hdbits
+    [/^.*?imagecache\.php\?url=(https?)%3A%2F%2Fthumbs(\d+)?\.imgbox\.com%2F(\w+)%2F(\w+)%2F(\w+)_t\.png/, '$1://images$2.imgbox.com/$3/$4/$5_o.png']
   ];
 
   // Skip redirections
@@ -407,9 +408,9 @@
   // Convert text to SVG image
   function text2SVGDataURL(text, width, height = 20) {
     return `data:image/svg+xml,${
-    encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' height="${height}" width="${width}"><text x="0" y="15" fill="white">${text}</text></svg>`
-    )}`;
+      encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' height="${height}" width="${width}"><text x="0" y="15" fill="white">${text}</text></svg>`
+      )}`;
   }
 
   // Function to make an <img/> element
@@ -443,19 +444,22 @@
   function leaveImage($overlay, target = undefined) {
     const original = $overlay.find('img:visible').hide()[0];
     if ((target || (original && (target = original.targetImage))) &&
-        target.easyCompare && target.easyCompare.boxShadow !== undefined) {
+      target.easyCompare && target.easyCompare.boxShadow !== undefined) {
       $(target).css('box-shadow', target.easyCompare.boxShadow);
     }
   }
 
+  // Filter function mapping
   const filterImage = {
     'rainbow': rainbowImage
   };
+
+  // Get original image function
   function getOriginalImage(target, $overlay) {
     if (target.easyCompare && target.easyCompare.originalImage) {
       return (target.easyCompare.originalImage);
     } else {
-      const originalImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
+      const originalImage = makeImage(text2SVGDataURL(`Loading ...`, 80))[0];
       originalImage.targetImage = target;
       $overlay.append(originalImage);
       if (!target.easyCompare) {
@@ -475,17 +479,17 @@
         // Guess original src from hyper link
         let href, hrefOriginal;
         if ((hrefOriginal = target.parentElement.href, href = hrefOriginal) &&
-            !href.match(/\.png$|\.jpe?g$|\.webp$/)) {
+          !href.match(/\.png$|\.jpe?g$|\.webp$/)) {
           for (let pairs of skipRedirLib) {
             href = href.replace(pairs[0], pairs[1]);
             if (href !== hrefOriginal) {
-              guessOriginalImage(href).then(src => {
-                originalImage.src = src || realSrc;
-                resolve(originalImage);
-              });
               break;
             }
           }
+          guessOriginalImage(href).then(src => {
+            originalImage.src = src || realSrc;
+            resolve(originalImage);
+          });
         } else if (href && href.match(/\.png$|\.jpe?g$|\.webp$/)) {
           originalImage.src = href;
           resolve(originalImage);
@@ -497,6 +501,8 @@
       return originalImage;
     }
   }
+
+  // Get diffed image function
   function getDiffedImage(target, base, $overlay) {
     if (target.src === base.src) {
       return getOriginalImage(target);
@@ -558,6 +564,8 @@
       return diffedImage;
     }
   }
+
+  // Get filtered image function
   function getFilteredImage(target, ftType, $overlay) {
     if (target.easyCompare && target.easyCompare[ftType]) {
       return target.easyCompare[ftType];
@@ -722,23 +730,23 @@
               }
               target.threshold = -1;
               diffImage(target.baseImage.easyCompare.originalImage.src,
-                        target.targetImage.easyCompare.originalImage.src,
-                        (a, b) => { },
-                        { alpha: 0.5, threshold: threshold })
+                target.targetImage.easyCompare.originalImage.src,
+                (a, b) => { },
+                { alpha: 0.5, threshold: threshold })
                 .then((diffSrc) => {
-                let temp;
-                if (diffSrc === null) {
-                  target.src = text2SVGDataURL(`Sizes Not Match`, 120);
-                  temp = thresholdPrev;
-                  setTimeout(() => { target.threshold = thresholdPrev; }, 300);
-                } else {
-                  target.src = diffSrc;
-                  temp = threshold;
-                  setTimeout(() => { target.threshold = threshold; }, 300);
-                }
-                $message.text(`Threshold: ${temp.toFixed(4)}`).css('opacity', '1');
-                setTimeout(() => $message.css('opacity', '0'), 300);
-              });
+                  let temp;
+                  if (diffSrc === null) {
+                    target.src = text2SVGDataURL(`Sizes Not Match`, 120);
+                    temp = thresholdPrev;
+                    setTimeout(() => { target.threshold = thresholdPrev; }, 300);
+                  } else {
+                    target.src = diffSrc;
+                    temp = threshold;
+                    setTimeout(() => { target.threshold = threshold; }, 300);
+                  }
+                  $message.text(`Threshold: ${temp.toFixed(4)}`).css('opacity', '1');
+                  setTimeout(() => $message.css('opacity', '0'), 300);
+                });
             }
           } catch (err) {
             console.warn(err);
@@ -757,23 +765,23 @@
               }
               target.threshold = -1;
               diffImage(target.baseImage.easyCompare.originalImage.src,
-                        target.targetImage.easyCompare.originalImage.src,
-                        (a, b) => { },
-                        { alpha: 0.5, threshold: threshold })
+                target.targetImage.easyCompare.originalImage.src,
+                (a, b) => { },
+                { alpha: 0.5, threshold: threshold })
                 .then((diffSrc) => {
-                let temp;
-                if (diffSrc === null) {
-                  target.src = text2SVGDataURL(`Sizes Not Match`, 120);
-                  temp = thresholdPrev;
-                  setTimeout(() => { target.threshold = thresholdPrev; }, 300);
-                } else {
-                  target.src = diffSrc;
-                  temp = threshold;
-                  setTimeout(() => { target.threshold = threshold; }, 300);
-                }
-                $message.text(`Threshold: ${temp.toFixed(4)}`).css('opacity', '1');
-                setTimeout(() => $message.css('opacity', '0'), 300);
-              });
+                  let temp;
+                  if (diffSrc === null) {
+                    target.src = text2SVGDataURL(`Sizes Not Match`, 120);
+                    temp = thresholdPrev;
+                    setTimeout(() => { target.threshold = thresholdPrev; }, 300);
+                  } else {
+                    target.src = diffSrc;
+                    temp = threshold;
+                    setTimeout(() => { target.threshold = threshold; }, 300);
+                  }
+                  $message.text(`Threshold: ${temp.toFixed(4)}`).css('opacity', '1');
+                  setTimeout(() => $message.css('opacity', '0'), 300);
+                });
             }
           } catch (err) {
             console.warn(err);
@@ -994,8 +1002,8 @@
       let x = e.clientX;
       let y = e.clientY;
       const lowerElement = document
-      .elementsFromPoint(x, y)
-      .find(e => !['svg', 'path'].includes(e.tagName));
+        .elementsFromPoint(x, y)
+        .find(e => !['svg', 'path'].includes(e.tagName));
       lowerElement.click();
     }
   }).mousedown((e) => {
@@ -1017,9 +1025,9 @@
   $('body').append($compareButton).append($overlay);
 
 })(window.$.noConflict(true),
-   unsafeWindow.Mousetrap,
-   window.pixelmatch,
-   window.UPNG,
-   unsafeWindow.URL.createObjectURL ?
-   unsafeWindow.URL :
-   unsafeWindow.webkitURL);
+  unsafeWindow.Mousetrap,
+  window.pixelmatch,
+  window.UPNG,
+  unsafeWindow.URL.createObjectURL ?
+    unsafeWindow.URL :
+    unsafeWindow.webkitURL);
