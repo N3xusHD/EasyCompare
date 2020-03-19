@@ -122,6 +122,9 @@
   // A global timeout ID holder
   let timeout;
 
+  // A global scale factor
+  let scale = 1;
+
   // Regex replacement array that converts thumbs to originals
   const t2oLib = [
     [/\.thumb\.jpe?g$/, ''], // nexusphp
@@ -427,6 +430,8 @@
       'left': '50%',
       'position': 'fixed',
       'transform': 'translate(-50%, -50%)',
+      'max-width': '100%',
+      'height': 'auto',
       'opacity': '1',
       'outline': '3px solid ' + outlineColor,
       'outline-offset': '2px',
@@ -461,11 +466,21 @@
   // Get original image function
   function getOriginalImage(target, $overlay) {
     if (target.easyCompare && target.easyCompare.originalImage) {
-      return (target.easyCompare.originalImage);
+      const originalImage = target.easyCompare.originalImage;
+      if (originalImage.ready) {
+        originalImage.style.width = `${scale * 100}%`;
+      }
+      return originalImage;
     } else {
       const originalImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
+      originalImage.ready = false;
+      const naturalHeight = originalImage.naturalHeight;
       originalImage.targetImage = target;
-      $overlay.append(originalImage);
+      $overlay.append(
+        $('<figure/>').css({
+          'width': 'fit-content'
+        }).append(originalImage)
+      );
       if (!target.easyCompare) {
         target.easyCompare = {};
       }
@@ -477,6 +492,8 @@
           realSrc = realSrc.replace(pairs[0], pairs[1]);
           if (realSrc !== target.src) {
             originalImage.src = realSrc;
+            originalImage.style.width = `${scale * 100}%`;
+            originalImage.ready = true;
             resolve(originalImage);
           }
         }
@@ -491,15 +508,21 @@
           }
           if (href.match(/\.png$|\.jpe?g$|\.webp|\.gif|\.bmp|\.svg$/)) {
             originalImage.src = href;
+            originalImage.style.width = `${scale * 100}%`;
+            originalImage.ready = true;
             resolve(originalImage);
           } else {
             guessOriginalImage(href).then(src => {
               originalImage.src = src || realSrc;
+              originalImage.style.width = `${scale * 100}%`;
+              originalImage.ready = true;
               resolve(originalImage);
             });
           }
         } else {
           originalImage.src = realSrc;
+          originalImage.style.width = `${scale * 100}%`;
+          originalImage.ready = true;
           resolve(originalImage);
         }
       });
@@ -515,14 +538,24 @@
     if (target.easyCompare && target.easyCompare[base.src]) {
       target.easyCompare[base.src].targetImage = target;
       target.easyCompare[base.src].baseImage = base;
-      return target.easyCompare[base.src];
+      const diffedImage = target.easyCompare[base.src];
+      if (diffedImage.ready) {
+        diffedImage.style.width = `${scale * 100}%`;
+      }
+      return diffedImage;
     } else {
       const diffedImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
-      diffedImage.targetImage = target;
+      diffedImage.ready = false;
+      const naturalHeight =
+        diffedImage.targetImage = target;
       diffedImage.baseImage = base;
       diffedImage.threshold = -1;
       diffedImage.step = 0.001;
-      $overlay.append(diffedImage);
+      $overlay.append(
+        $('<figure/>').css({
+          'width': 'fit-content'
+        }).append(diffedImage)
+      );
       if (!target.easyCompare) {
         target.easyCompare = {};
       }
@@ -558,6 +591,10 @@
         if (diffedSrc === null) {
           diffedImage.src = text2SVGDataURL(`Sizes Not Match`, 120);
         } else {
+          diffedImage.onload = () => {
+            diffedImage.style.width = `${scale * 100}%`;
+            diffedImage.ready = true;
+          };
           diffedImage.src = diffedSrc;
           diffedImage.threshold = 0.007;
         }
@@ -565,7 +602,6 @@
         console.warn(err);
         diffedImage.src = text2SVGDataURL(`Sth. Went Wrong`, 120);
       });
-
       return diffedImage;
     }
   }
@@ -573,11 +609,20 @@
   // Get filtered image function
   function getFilteredImage(target, ftType, $overlay) {
     if (target.easyCompare && target.easyCompare[ftType]) {
-      return target.easyCompare[ftType];
+      const filteredImage = target.easyCompare[ftType];
+      if (filteredImage.ready) {
+        filteredImage.style.width = `${scale * 100}%`;
+      }
+      return filteredImage;
     } else {
       const filteredImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
+      filteredImage.ready = false;
       filteredImage.targetImage = target;
-      $overlay.append(filteredImage);
+      $overlay.append(
+        $('<figure/>').css({
+          'width': 'fit-content'
+        }).append(filteredImage)
+      );
       if (!target.easyCompare) {
         target.easyCompare = {};
       }
@@ -596,6 +641,10 @@
       getOriginalImage(target, $overlay);
       target.easyCompare.originalImagePromise.then(originalImage => {
         filterImage[ftType](originalImage.src, updateProgress).then(filterdSrc => {
+          filteredImage.onload = () => {
+            filteredImage.style.width = `${scale * 100}%`;
+            filteredImage.ready = true;
+          };
           filteredImage.src = filterdSrc;
         });
       });
@@ -612,7 +661,6 @@
     let colors = ['red', 'blue'];
     let step = 1, baseImage;
     let ftType = 'none';
-
     // Mouse enter event
     $images.on('mouseenter.compare', (e, triggeredShiftKey) => {
       const target = e.currentTarget;
@@ -678,6 +726,61 @@
             baseImage = undefined;
             if (!(err instanceof TypeError)) {
               console.warn(err);
+            }
+          }
+          break;
+        case '+': case '=':
+          if (e.ctrlKey) {
+            try {
+              if (scale <= 0.9) {
+                scale = scale + 0.1;
+              } else {
+                scale = 1;
+              }
+              const target = $overlay.find('img:visible')[0];
+              if (target.ready) {
+                target.style.width = `${scale * 100}%`;
+              }
+            } catch (err) {
+              if (!(err instanceof TypeError)) {
+                console.warn(err);
+              }
+            }
+          }
+          break;
+        case '-': case '_':
+          if (e.ctrlKey) {
+            try {
+              if (scale >= 0.2) {
+                scale = scale - 0.1;
+              } else {
+                scale = 0.1;
+              }
+              const target = $overlay.find('img:visible')[0];
+              if (target.ready) {
+                target.style.width = `${scale * 100}%`;
+              }
+            } catch (err) {
+              if (!(err instanceof TypeError)) {
+                console.warn(err);
+              }
+            }
+          }
+          break;
+        case 'O': case 'o':
+          if (e.ctrlKey) {
+            try {
+              if (scale !== 1) {
+                scale = 1;
+                const target = $overlay.find('img:visible')[0];
+                if (target.ready) {
+                  target.style.width = `${scale * 100}%`;
+                }
+              }
+            } catch (err) {
+              if (!(err instanceof TypeError)) {
+                console.warn(err);
+              }
             }
           }
           break;
@@ -754,7 +857,9 @@
                 });
             }
           } catch (err) {
-            console.warn(err);
+            if (!(err instanceof TypeError)) {
+              console.warn(err);
+            }
           }
           break;
         case 'K': case 'k': case 'ArrowDown':
@@ -789,7 +894,9 @@
                 });
             }
           } catch (err) {
-            console.warn(err);
+            if (!(err instanceof TypeError)) {
+              console.warn(err);
+            }
           }
           break;
         case 'J': case 'j': case 'ArrowLeft':
@@ -816,7 +923,9 @@
               setTimeout(() => $message.css('opacity', '0'), 300);
             }
           } catch (err) {
-            console.warn(err);
+            if (!(err instanceof TypeError)) {
+              console.warn(err);
+            }
           }
           break;
         case 'L': case 'l': case 'ArrowRight':
@@ -832,7 +941,7 @@
               const target = e.targetImage;
               delete target.easyCompare;
               URL.revokeObjectURL(e.src);
-              e.remove();
+              e.parentElement.remove();
             });
           } else {
             try {
@@ -858,7 +967,9 @@
                 setTimeout(() => $message.css('opacity', '0'), 300);
               }
             } catch (err) {
-              console.warn(err);
+              if (!(err instanceof TypeError)) {
+                console.warn(err);
+              }
             }
           }
           break;
@@ -879,9 +990,10 @@
             leaveImage($overlay, targetImage);
             const nextElem = $images[index + step] || $images[index];
             $(nextElem).trigger('mouseenter', [e.shiftKey]);
-          }
-          catch (err) {
-            console.warn(err);
+          } catch (err) {
+            if (!(err instanceof TypeError)) {
+              console.warn(err);
+            }
           }
           break;
         case 'W': case 'w':
@@ -891,9 +1003,10 @@
             leaveImage($overlay, targetImage);
             const nextElem = $images[index - step] || $images[index];
             $(nextElem).trigger('mouseenter', [e.shiftKey]);
-          }
-          catch (err) {
-            console.warn(err);
+          } catch (err) {
+            if (!(err instanceof TypeError)) {
+              console.warn(err);
+            }
           }
           break;
       }
