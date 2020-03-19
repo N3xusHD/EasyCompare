@@ -11,10 +11,10 @@ const defaultOptions = {
 function pixelmatch(img1, img2, output, width, height, options) {
 
   if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
-      throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
+    throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
 
   if (img1.length !== img2.length || (output && output.length !== img1.length))
-      throw new Error('Image sizes do not match.');
+    throw new Error('Image sizes do not match.');
 
   if (img1.length !== width * height * 4) throw new Error('Image data size does not match width/height.');
 
@@ -27,13 +27,13 @@ function pixelmatch(img1, img2, output, width, height, options) {
   let identical = true;
 
   for (let i = 0; i < len; i++) {
-      if (a32[i] !== b32[i]) { identical = false; break; }
+    if (a32[i] !== b32[i]) { identical = false; break; }
   }
   if (identical) { // fast path if identical
-      if (output && !options.diffMask) {
-          for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, options.alpha, output);
-      }
-      return 0;
+    if (output && !options.diffMask) {
+      for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, options.alpha, output);
+    }
+    return 0;
   }
 
   // maximum acceptable square distance between two colors;
@@ -46,33 +46,33 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
   // compare each pixel of one image against the other one
   for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
+    for (let x = 0; x < width; x++) {
 
-          const pos = (y * width + x) * 4;
+      const pos = (y * width + x) * 4;
 
-          // squared YUV distance between colors at this pixel position
-          const delta = colorDelta(img1, img2, pos, pos);
+      // squared YUV distance between colors at this pixel position
+      const delta = colorDelta(img1, img2, pos, pos);
 
-          // the color difference is above the threshold
-          if (delta > maxDelta) {
-              // check it's a real rendering difference or just anti-aliasing
-              if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
-                                         antialiased(img2, x, y, width, height, img1))) {
-                  // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                  // note that we do not include such pixels in a mask
-                  if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
+      // the color difference is above the threshold
+      if (delta > maxDelta) {
+        // check it's a real rendering difference or just anti-aliasing
+        if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
+          antialiased(img2, x, y, width, height, img1))) {
+          // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
+          // note that we do not include such pixels in a mask
+          if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
 
-              } else {
-                  // found substantial difference not caused by anti-aliasing; draw it as red
-                  if (output) drawPixel(output, pos, diffR, diffG, diffB);
-                  diff++;
-              }
+        } else {
+          // found substantial difference not caused by anti-aliasing; draw it as red
+          if (output) drawPixel(output, pos, diffR, diffG, diffB);
+          diff++;
+        }
 
-          } else if (output) {
-              // pixels are similar; draw background as grayscale image blended with white
-              if (!options.diffMask) drawGrayPixel(img1, pos, options.alpha, output);
-          }
+      } else if (output) {
+        // pixels are similar; draw background as grayscale image blended with white
+        if (!options.diffMask) drawGrayPixel(img1, pos, options.alpha, output);
       }
+    }
   }
 
   // return the number of different pixels
@@ -100,31 +100,31 @@ function antialiased(img, x1, y1, width, height, img2) {
 
   // go through 8 adjacent pixels
   for (let x = x0; x <= x2; x++) {
-      for (let y = y0; y <= y2; y++) {
-          if (x === x1 && y === y1) continue;
+    for (let y = y0; y <= y2; y++) {
+      if (x === x1 && y === y1) continue;
 
-          // brightness delta between the center pixel and adjacent one
-          const delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
+      // brightness delta between the center pixel and adjacent one
+      const delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
 
-          // count the number of equal, darker and brighter adjacent pixels
-          if (delta === 0) {
-              zeroes++;
-              // if found more than 2 equal siblings, it's definitely not anti-aliasing
-              if (zeroes > 2) return false;
+      // count the number of equal, darker and brighter adjacent pixels
+      if (delta === 0) {
+        zeroes++;
+        // if found more than 2 equal siblings, it's definitely not anti-aliasing
+        if (zeroes > 2) return false;
 
-          // remember the darkest pixel
-          } else if (delta < min) {
-              min = delta;
-              minX = x;
-              minY = y;
+        // remember the darkest pixel
+      } else if (delta < min) {
+        min = delta;
+        minX = x;
+        minY = y;
 
-          // remember the brightest pixel
-          } else if (delta > max) {
-              max = delta;
-              maxX = x;
-              maxY = y;
-          }
+        // remember the brightest pixel
+      } else if (delta > max) {
+        max = delta;
+        maxX = x;
+        maxY = y;
       }
+    }
   }
 
   // if there are no both darker and brighter pixels among siblings, it's not anti-aliasing
@@ -133,7 +133,7 @@ function antialiased(img, x1, y1, width, height, img2) {
   // if either the darkest or the brightest pixel has 3+ equal siblings in both images
   // (definitely not anti-aliased), this pixel is anti-aliased
   return (hasManySiblings(img, minX, minY, width, height) && hasManySiblings(img2, minX, minY, width, height)) ||
-         (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
+    (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
 }
 
 // check if a pixel has 3+ adjacent pixels of the same color.
@@ -147,17 +147,17 @@ function hasManySiblings(img, x1, y1, width, height) {
 
   // go through 8 adjacent pixels
   for (let x = x0; x <= x2; x++) {
-      for (let y = y0; y <= y2; y++) {
-          if (x === x1 && y === y1) continue;
+    for (let y = y0; y <= y2; y++) {
+      if (x === x1 && y === y1) continue;
 
-          const pos2 = (y * width + x) * 4;
-          if (img[pos] === img[pos2] &&
-              img[pos + 1] === img[pos2 + 1] &&
-              img[pos + 2] === img[pos2 + 2] &&
-              img[pos + 3] === img[pos2 + 3]) zeroes++;
+      const pos2 = (y * width + x) * 4;
+      if (img[pos] === img[pos2] &&
+        img[pos + 1] === img[pos2 + 1] &&
+        img[pos + 2] === img[pos2 + 2] &&
+        img[pos + 3] === img[pos2 + 3]) zeroes++;
 
-          if (zeroes > 2) return true;
-      }
+      if (zeroes > 2) return true;
+    }
   }
 
   return false;
@@ -180,17 +180,17 @@ function colorDelta(img1, img2, k, m, yOnly) {
   if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2) return 0;
 
   if (a1 < 255) {
-      a1 /= 255;
-      r1 = blend(r1, a1);
-      g1 = blend(g1, a1);
-      b1 = blend(b1, a1);
+    a1 /= 255;
+    r1 = blend(r1, a1);
+    g1 = blend(g1, a1);
+    b1 = blend(b1, a1);
   }
 
   if (a2 < 255) {
-      a2 /= 255;
-      r2 = blend(r2, a2);
-      g2 = blend(g2, a2);
-      b2 = blend(b2, a2);
+    a2 /= 255;
+    r2 = blend(r2, a2);
+    g2 = blend(g2, a2);
+    b2 = blend(b2, a2);
   }
 
   const y = rgb2y(r1, g1, b1) - rgb2y(r2, g2, b2);

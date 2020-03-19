@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.7.2
+// @version            0.7.3
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -51,48 +51,65 @@
 // jshint esversion:8
 (async function ($, Mousetrap, pixelmatch, UPNG, URL) {
   'use strict';
-  // Solar Curve;
-  const [Rc, Gc, Bc] = [
+  // Solar Curve
+  const [Rso, Gso, Bso] = [
     new Uint8Array([0, 2, 9, 21, 37, 56, 78, 101, 125, 149, 172, 193, 212, 228, 241, 250, 254, 255, 252, 246, 235, 222, 206, 188, 168, 148, 127, 106, 86, 67, 49, 34, 22, 12, 5, 1, 0, 1, 6, 14, 24, 36, 50, 66, 82, 100, 118, 136, 154, 171, 188, 203, 216, 228, 238, 245, 251, 254, 255, 254, 251, 246, 239, 230, 219, 207, 194, 180, 165, 149, 134, 118, 103, 88, 73, 60, 48, 36, 26, 18, 11, 6, 2, 0, 0, 1, 4, 8, 14, 22, 30, 40, 51, 63, 75, 88, 102, 115, 129, 143, 156, 170, 182, 194, 205, 216, 225, 233, 240, 246, 250, 253, 255, 255, 254, 252, 248, 243, 237, 230, 221, 212, 201, 190, 179, 166, 154, 141, 128, 114, 101, 89, 76, 65, 54, 43, 34, 25, 18, 12, 7, 3, 1, 0, 0, 2, 5, 9, 15, 22, 30, 39, 50, 61, 73, 85, 99, 112, 126, 140, 153, 167, 180, 192, 204, 215, 225, 233, 241, 247, 251, 254, 255, 255, 253, 249, 244, 237, 229, 219, 207, 195, 182, 167, 152, 137, 121, 106, 90, 75, 61, 48, 36, 25, 16, 9, 4, 1, 0, 1, 4, 10, 17, 27, 39, 52, 67, 84, 101, 119, 137, 155, 173, 189, 205, 219, 231, 241, 249, 254, 255, 254, 250, 243, 233, 221, 206, 188, 169, 149, 128, 107, 87, 67, 49, 33, 20, 9, 3, 0, 1, 5, 14, 27, 43, 62, 83, 106, 130, 154, 177, 199, 218, 234, 246, 253]),
     new Uint8Array([60, 39, 22, 10, 2, 0, 2, 9, 21, 37, 56, 78, 101, 125, 149, 172, 193, 212, 228, 241, 250, 254, 255, 252, 246, 235, 222, 206, 188, 168, 148, 127, 106, 86, 67, 49, 34, 22, 12, 5, 1, 0, 1, 6, 14, 24, 36, 50, 66, 82, 100, 118, 136, 154, 171, 188, 203, 216, 228, 238, 245, 251, 254, 255, 254, 251, 246, 239, 230, 219, 207, 194, 180, 165, 149, 134, 118, 103, 88, 73, 60, 48, 36, 26, 18, 11, 6, 2, 0, 0, 1, 4, 8, 14, 22, 30, 40, 51, 63, 75, 88, 102, 115, 129, 143, 156, 170, 182, 194, 205, 216, 225, 233, 240, 246, 250, 253, 255, 255, 254, 252, 248, 243, 237, 230, 221, 212, 201, 190, 179, 166, 154, 141, 128, 114, 101, 89, 76, 65, 54, 43, 34, 25, 18, 12, 7, 3, 1, 0, 0, 2, 5, 9, 15, 22, 30, 39, 50, 61, 73, 85, 99, 112, 126, 140, 153, 167, 180, 192, 204, 215, 225, 233, 241, 247, 251, 254, 255, 255, 253, 249, 244, 237, 229, 219, 207, 195, 182, 167, 152, 137, 121, 106, 90, 75, 61, 48, 36, 25, 16, 9, 4, 1, 0, 1, 4, 10, 17, 27, 39, 52, 67, 84, 101, 119, 137, 155, 173, 189, 205, 219, 231, 241, 249, 254, 255, 254, 250, 243, 233, 221, 206, 188, 169, 149, 128, 107, 87, 67, 49, 33, 20, 9, 3, 0, 1, 5, 14, 27, 43, 62, 83, 106, 130, 154, 177]),
     new Uint8Array([56, 78, 101, 125, 149, 172, 193, 212, 228, 241, 250, 254, 255, 252, 246, 235, 222, 206, 188, 168, 148, 127, 106, 86, 67, 49, 34, 22, 12, 5, 1, 0, 1, 6, 14, 24, 36, 50, 66, 82, 100, 118, 136, 154, 171, 188, 203, 216, 228, 238, 245, 251, 254, 255, 254, 251, 246, 239, 230, 219, 207, 194, 180, 165, 149, 134, 118, 103, 88, 73, 60, 48, 36, 26, 18, 11, 6, 2, 0, 0, 1, 4, 8, 14, 22, 30, 40, 51, 63, 75, 88, 102, 115, 129, 143, 156, 170, 182, 194, 205, 216, 225, 233, 240, 246, 250, 253, 255, 255, 254, 252, 248, 243, 237, 230, 221, 212, 201, 190, 179, 166, 154, 141, 128, 114, 101, 89, 76, 65, 54, 43, 34, 25, 18, 12, 7, 3, 1, 0, 0, 2, 5, 9, 15, 22, 30, 39, 50, 61, 73, 85, 99, 112, 126, 140, 153, 167, 180, 192, 204, 215, 225, 233, 241, 247, 251, 254, 255, 255, 253, 249, 244, 237, 229, 219, 207, 195, 182, 167, 152, 137, 121, 106, 90, 75, 61, 48, 36, 25, 16, 9, 4, 1, 0, 1, 4, 10, 17, 27, 39, 52, 67, 84, 101, 119, 137, 155, 173, 189, 205, 219, 231, 241, 249, 254, 255, 254, 250, 243, 233, 221, 206, 188, 169, 149, 128, 107, 87, 67, 49, 33, 20, 9, 3, 0, 1, 5, 14, 27, 43, 62, 83, 106, 130, 154, 177, 199, 218, 234, 246, 253, 255, 253, 245, 233, 216])
   ];
-  async function loadBuffer(worker) {
+  // S2lar Curve
+  const [Rs2, Gs2, Bs2] = [
+    new Uint8Array([0, 9, 149, 222, 1, 251, 26, 170, 166, 22, 255, 25, 173, 169, 5, 177, 246, 253, 218, 83, 33, 250, 67, 90, 241, 15, 141, 225, 4, 180, 171, 5, 206, 212, 56, 2, 0, 2, 78, 241, 168, 0, 188, 194, 2, 156, 237, 34, 73, 254, 90, 27, 231, 169, 3, 62, 199, 246, 253, 246, 199, 83, 0, 128, 254, 84, 16, 207, 215, 22, 54, 237, 194, 14, 88, 251, 154, 0, 127, 252, 193, 78, 9, 0, 0, 2, 37, 125, 241, 206, 49, 24, 203, 230, 60, 14, 182, 252, 114, 0, 99, 251, 182, 16, 52, 231, 221, 67, 1, 83, 177, 234, 253, 253, 246, 218, 130, 27, 9, 128, 254, 173, 10, 61, 219, 225, 73, 3, 128, 254, 170, 22, 48, 207, 238, 66, 5, 148, 252, 212, 101, 21, 2, 0, 0, 9, 56, 149, 250, 206, 49, 14, 188, 246, 88, 1, 143, 255, 154, 7, 61, 233, 207, 36, 39, 219, 221, 67, 5, 106, 199, 246, 253, 253, 234, 154, 43, 9, 149, 254, 84, 9, 182, 233, 50, 25, 212, 225, 30, 60, 246, 154, 0, 148, 254, 149, 37, 2, 0, 2, 37, 172, 255, 106, 14, 216, 180, 0, 170, 230, 25, 85, 255, 75, 52, 254, 107, 5, 154, 246, 253, 246, 177, 27, 67, 254, 67, 90, 247, 22, 128, 233, 8, 180, 171, 12, 235, 149, 21, 0, 2, 56, 241, 106, 66, 239, 0, 225, 101, 73, 237, 1, 249, 49, 83, 234]),
+    new Uint8Array([245, 5, 255, 56, 22, 60, 22, 37, 254, 22, 203, 88, 102, 221, 0, 233, 90, 84, 243, 20, 62, 154, 177, 106, 5, 128, 241, 10, 167, 192, 0, 201, 170, 6, 239, 82, 67, 255, 101, 0, 39, 60, 39, 2, 149, 246, 34, 100, 246, 36, 88, 255, 89, 22, 225, 167, 0, 155, 243, 67, 1, 83, 154, 177, 154, 83, 5, 49, 221, 205, 17, 75, 249, 153, 0, 114, 255, 129, 0, 165, 245, 66, 34, 222, 228, 78, 2, 22, 60, 60, 39, 2, 21, 149, 255, 148, 1, 118, 255, 134, 0, 115, 250, 179, 18, 39, 215, 237, 75, 4, 155, 255, 169, 33, 5, 62, 130, 177, 177, 154, 106, 27, 3, 87, 221, 231, 84, 4, 137, 253, 167, 22, 34, 190, 246, 102, 0, 118, 251, 171, 6, 67, 235, 228, 101, 9, 10, 39, 60, 60, 22, 0, 37, 172, 255, 148, 5, 100, 251, 165, 11, 75, 233, 212, 43, 15, 180, 249, 106, 1, 137, 255, 169, 20, 14, 83, 154, 177, 177, 130, 43, 0, 87, 233, 205, 17, 61, 237, 180, 9, 76, 248, 170, 1, 134, 251, 66, 34, 235, 193, 37, 2, 39, 60, 39, 2, 56, 212, 206, 5, 136, 239, 18, 102, 254, 76, 30, 241, 152, 4, 205, 206, 20, 43, 154, 177, 154, 62, 3, 169, 231, 10, 167, 204, 0, 190, 182, 2, 239, 82, 86, 250, 37, 10, 60, 39, 0, 149, 206, 6, 254, 26, 170, 166, 22, 255]),
+    new Uint8Array([246, 0, 225, 101, 73, 237, 0, 241, 67, 83, 253, 233, 216, 253, 199, 1, 188, 155, 25, 255, 61, 76, 253, 40, 103, 238, 14, 106, 255, 172, 78, 56, 78, 193, 246, 67, 36, 245, 118, 8, 216, 190, 3, 140, 244, 25, 101, 254, 67, 27, 177, 255, 233, 216, 233, 255, 199, 43, 33, 233, 173, 1, 137, 251, 73, 12, 190, 240, 63, 26, 207, 228, 36, 34, 188, 254, 193, 101, 56, 56, 78, 149, 228, 246, 106, 1, 100, 251, 165, 11, 63, 233, 221, 54, 15, 167, 249, 106, 1, 137, 254, 128, 3, 62, 199, 253, 245, 216, 216, 233, 253, 234, 130, 14, 33, 206, 241, 67, 9, 152, 254, 140, 5, 65, 230, 225, 75, 6, 134, 254, 154, 14, 49, 188, 255, 212, 125, 78, 56, 56, 101, 172, 241, 235, 106, 1, 82, 245, 194, 26, 30, 205, 243, 89, 2, 126, 255, 137, 1, 119, 255, 128, 3, 83, 218, 255, 233, 216, 216, 245, 246, 154, 14, 49, 233, 173, 4, 106, 255, 112, 1, 154, 253, 88, 11, 194, 228, 36, 49, 222, 241, 149, 78, 56, 78, 149, 250, 206, 22, 82, 254, 103, 22, 225, 179, 1, 153, 229, 16, 137, 233, 20, 83, 246, 233, 216, 233, 253, 130, 3, 206, 155, 25, 253, 73, 65, 255, 51, 103, 238, 6, 148, 241, 125, 56, 78, 172, 246, 22, 154, 180, 14, 253, 43, 140, 182, 39, 243, 0, 199, 245, 216, 245, 177, 3, 254])
+  ];
+  async function loadBuffer(worker, R, G, B) {
     return new Promise((resolve) => {
-      rainbowWorker.onmessage = (e) => { resolve(e.data.result); };
-      rainbowWorker.postMessage({
-        Rc: Rc.buffer,
-        Gc: Gc.buffer,
-        Bc: Bc.buffer
-      }, [Rc.buffer, Gc.buffer, Bc.buffer]);
+      worker.onmessage = (e) => { resolve(e.data.result); };
+      worker.postMessage({
+        R: R.buffer,
+        G: G.buffer,
+        B: B.buffer
+      }, [R.buffer, G.buffer, B.buffer]);
     });
   }
-  // Diff, Rainbow Worker Initialization
-  let diffWorker, rainbowWorker;
+  // Diff, Solar, S2lar Worker Initialization
+  let diffWorker, solarWorker, s2larWorker;
   const diffWorkerScript = `const defaultOptions={threshold:.1,includeAA:!1,alpha:.1,aaColor:[255,255,0],diffColor:[255,0,0],diffMask:!1};function pixelmatch(a,b,c,d,e,f){if(!isPixelData(a)||!isPixelData(b)||c&&!isPixelData(c))throw new Error("Image data: Uint8Array, Uint8ClampedArray or Buffer expected.");if(a.length!==b.length||c&&c.length!==a.length)throw new Error("Image sizes do not match.");if(a.length!==4*(d*e))throw new Error("Image data size does not match width/height.");f=Object.assign({},defaultOptions,f);const g=d*e,h=new Uint32Array(a.buffer,a.byteOffset,g),j=new Uint32Array(b.buffer,b.byteOffset,g);let k=!0;for(let l=0;l<g;l++)if(h[l]!==j[l]){k=!1;break}if(k){if(c&&!f.diffMask)for(let b=0;b<g;b++)drawGrayPixel(a,4*b,f.alpha,c);return 0}const l=35215*f.threshold*f.threshold;let m=0;const[n,o,p]=f.aaColor,[q,r,s]=f.diffColor;for(let g=0;g<e;g++)for(let h=0;h<d;h++){const i=4*(g*d+h),j=colorDelta(a,b,i,i);j>l?!f.includeAA&&(antialiased(a,h,g,d,e,b)||antialiased(b,h,g,d,e,a))?c&&!f.diffMask&&drawPixel(c,i,n,o,p):(c&&drawPixel(c,i,q,r,s),m++):c&&!f.diffMask&&drawGrayPixel(a,i,f.alpha,c)}return m}function isPixelData(a){return ArrayBuffer.isView(a)&&1===a.constructor.BYTES_PER_ELEMENT}function antialiased(a,b,c,d,e,f){const g=Math.max(b-1,0),h=Math.max(c-1,0),i=Math.min(b+1,d-1),j=Math.min(c+1,e-1);let k,l,m,n,o=b===g||b===i||c===h||c===j?1:0,p=0,q=0;for(let r=g;r<=i;r++)for(let e=h;e<=j;e++){if(r===b&&e===c)continue;const f=colorDelta(a,a,4*(c*d+b),4*(e*d+r),!0);if(0!==f)f<p?(p=f,k=r,l=e):f>q&&(q=f,m=r,n=e);else if(o++,2<o)return!1}return 0!==p&&0!==q&&(hasManySiblings(a,k,l,d,e)&&hasManySiblings(f,k,l,d,e)||hasManySiblings(a,m,n,d,e)&&hasManySiblings(f,m,n,d,e))}function hasManySiblings(a,b,c,d,e){const f=Math.max(b-1,0),g=Math.max(c-1,0),h=Math.min(b+1,d-1),i=Math.min(c+1,e-1),j=4*(c*d+b);let k=b===f||b===h||c===g||c===i?1:0;for(let l=f;l<=h;l++)for(let e=g;e<=i;e++){if(l===b&&e===c)continue;const f=4*(e*d+l);if(a[j]===a[f]&&a[j+1]===a[f+1]&&a[j+2]===a[f+2]&&a[j+3]===a[f+3]&&k++,2<k)return!0}return!1}function colorDelta(a,b,c,d,e){let f=a[c+0],g=a[c+1],h=a[c+2],j=a[c+3],k=b[d+0],l=b[d+1],m=b[d+2],n=b[d+3];if(j===n&&f===k&&g===l&&h===m)return 0;255>j&&(j/=255,f=blend(f,j),g=blend(g,j),h=blend(h,j)),255>n&&(n/=255,k=blend(k,n),l=blend(l,n),m=blend(m,n));const o=rgb2y(f,g,h)-rgb2y(k,l,m);if(e)return o;const p=rgb2i(f,g,h)-rgb2i(k,l,m),i=rgb2q(f,g,h)-rgb2q(k,l,m);return .5053*o*o+.299*p*p+.1957*i*i}function rgb2y(a,c,d){return .29889531*a+.58662247*c+.11448223*d}function rgb2i(a,c,d){return .59597799*a-.2741761*c-.32180189*d}function rgb2q(a,c,d){return .21147017*a-.52261711*c+.31114694*d}function blend(b,c){return 255+(b-255)*c}function drawPixel(a,c,d,e,f){a[c+0]=d,a[c+1]=e,a[c+2]=f,a[c+3]=255}function drawGrayPixel(a,c,d,e){const f=a[c+0],h=a[c+1],g=a[c+2],b=blend(rgb2y(f,h,g),d*a[c+3]/255);drawPixel(e,c,b,b,b)}self.onmessage=a=>{img1=new Uint8ClampedArray(a.data.img1),img2=new Uint8ClampedArray(a.data.img2),diff=new Uint8ClampedArray(img1),width=a.data.width,height=a.data.height,init=a.data.init,key=a.data.key;try{pixelmatch(img1,img2,diff,width,height,init),self.postMessage({diff:diff.buffer,width:width,height:height,key:key},[diff.buffer])}catch(a){console.warn(a),self.postMessage({diff:null,key:key})}};`;
-  const rainbowWorkerScript = `let Rc,Gc,Bc;self.onmessage=a=>{const b=a.data.key;if(a.data.Rc&&a.data.Gc&&a.data.Bc)Rc=new Uint8ClampedArray(a.data.Rc),Gc=new Uint8ClampedArray(a.data.Gc),Bc=new Uint8ClampedArray(a.data.Bc),self.postMessage({result:!0});else{const c=new Uint8ClampedArray(a.data.img),d=new Uint8ClampedArray(c),e=a.data.width,f=a.data.height;try{for(let a=0;a<f;++a)for(let b,f=0;f<e;++f)b=4*f+4*(a*e),d[b]=Rc[c[b]],d[b+1]=Gc[c[b+1]],d[b+2]=Bc[c[b+2]],d[b+3]=c[b+3];self.postMessage({filter:d.buffer,width:e,height:f,key:b},[d.buffer])}catch(a){console.warn(a),self.postMessage({filter:null,key:b})}}};`;
+  const rgbWorkerScript = `let R,G,B;self.onmessage=(e=>{const a=e.data.key;if(e.data.R&&e.data.G&&e.data.B)R=new Uint8ClampedArray(e.data.R),G=new Uint8ClampedArray(e.data.G),B=new Uint8ClampedArray(e.data.B),self.postMessage({result:!0});else{const t=new Uint8ClampedArray(e.data.img),l=new Uint8ClampedArray(t),s=e.data.width,r=e.data.height;try{for(let e=0;e<r;++e)for(let a=0;a<s;++a){let r=4*a+e*s*4;l[r]=R[t[r]],l[r+1]=G[t[r+1]],l[r+2]=B[t[r+2]],l[r+3]=t[r+3]}self.postMessage({filter:l.buffer,width:s,height:r,key:a},[l.buffer])}catch(e){console.warn(e),self.postMessage({filter:null,key:a})}}});`;
   try {
     const diffWorkerBlob = new Blob([diffWorkerScript], { type: 'application/javascript' });
     diffWorker = new Worker(URL.createObjectURL(diffWorkerBlob));
     diffWorker.keyPool = {};
     URL.revokeObjectURL(diffWorkerBlob);
-    const rainbowWorkerBlob = new Blob([rainbowWorkerScript], { type: 'application/javascript' });
-    rainbowWorker = new Worker(URL.createObjectURL(rainbowWorkerBlob));
-    rainbowWorker.keyPool = {};
-    URL.revokeObjectURL(rainbowWorkerBlob);
-    await loadBuffer(rainbowWorker);
+    const rgbWorkerBlob = new Blob([rgbWorkerScript], { type: 'application/javascript' });
+    const rgbWorkerURL = URL.createObjectURL(rgbWorkerBlob);
+    solarWorker = new Worker(rgbWorkerURL);
+    solarWorker.keyPool = {};
+    const transSo = loadBuffer(solarWorker, Rso, Gso, Bso);
+    s2larWorker = new Worker(rgbWorkerURL);
+    s2larWorker.keyPool = {};
+    const transS2 = loadBuffer(s2larWorker, Rs2, Gs2, Bs2);
+    URL.revokeObjectURL(rgbWorkerURL);
+    await transSo;
+    await transS2;
   } catch (e) {
     try {
       const diffWorkerDataURI = `data:application/javascript,${encodeURIComponent(diffWorkerScript)}`;
       diffWorker = new Worker(diffWorkerDataURI);
       diffWorker.keyPool = {};
-      const rainbowWorkerDataURI = `data:application/javascript,${encodeURIComponent(rainbowWorkerScript)}`;
-      rainbowWorker = new Worker(rainbowWorkerDataURI);
-      rainbowWorker.keyPool = {};
-      await loadBuffer(rainbowWorker);
+      const rgbWorkerDataURI = `data:application/javascript,${encodeURIComponent(rgbWorkerScript)}`;
+      solarWorker = new Worker(rgbWorkerDataURI);
+      solarWorker.keyPool = {};
+      const transSo = loadBuffer(solarWorker, Rso, Gso, Bso);
+      s2larWorker = new Worker(rgbWorkerDataURI);
+      s2larWorker.keyPool = {};
+      const transS2 = loadBuffer(s2larWorker, Rs2, Gs2, Bs2);
+      await transSo;
+      await transS2;
     } catch (e) {
       diffWorker = null;
-      rainbowWorker = null;
+      solarWorker = null;
     }
   }
 
@@ -258,23 +275,31 @@
     }
   }
 
-  function solarCurve(raw, filter, width, height) {
+  // Filter function mapping
+  const filterImage = {
+    'solar': (src, onprogress) => rgbImage(src, onprogress, solarWorker || [Rso, Gso, Bso]),
+    's2lar': (src, onprogress) => rgbImage(src, onprogress, s2larWorker || [Rs2, Gs2, Bs2])
+  };
+
+  function rgbCurve(raw, filter, width, height, rgb) {
+    [R, G, B] = rgb;
     for (let row = 0; row < height; ++row) {
       for (let col = 0; col < width; ++col) {
         let ind = col * 4 + row * width * 4;
-        filter[ind] = Rc[raw[ind]];
-        filter[ind + 1] = Gc[raw[ind + 1]];
-        filter[ind + 2] = Bc[raw[ind + 2]];
+        filter[ind] = R[raw[ind]];
+        filter[ind + 1] = G[raw[ind + 1]];
+        filter[ind + 2] = B[raw[ind + 2]];
         filter[ind + 3] = raw[ind + 3];
       }
     }
   }
 
-  async function rainbowImage(src, onprogress, worker = rainbowWorker) {
+  async function rgbImage(src, onprogress, argument) {
     const img = await getImageBytesBuffer(src, onprogress);
     if (img) {
       onprogress(null);
-      if (worker) {
+      if (argument instanceof Worker) {
+        const worker = argument;
         const [raw, width, height] = [img.raw, img.width, img.height];
         const key = '' + Date.now();
         worker.onmessage = (e) => {
@@ -306,13 +331,14 @@
           worker.keyPool[key] = res;
         });
       } else {
+        const rgb = argument;
         const [raw, width, height] = [new Uint8ClampedArray(img.raw), img.width, img.height];
         const canvas = document.createElement('canvas');
         [canvas.width, canvas.height] = [width, height];
         const context = canvas.getContext('2d');
-        const rainbow = context.createImageData(width, height);
-        solarCurve(raw, rainbow.data, width, height);
-        context.putImageData(rainbow, 0, 0);
+        const rgbImage = context.createImageData(width, height);
+        rgbCurve(raw, rgbImage.data, width, height, rgb);
+        context.putImageData(rgbImage, 0, 0);
         return new Promise((resolve) => {
           canvas.toBlob((blob) => {
             resolve(URL.createObjectURL(blob));
@@ -447,11 +473,6 @@
       $(target).css('box-shadow', target.easyCompare.boxShadow);
     }
   }
-
-  // Filter function mapping
-  const filterImage = {
-    'rainbow': rainbowImage
-  };
 
   // Get original image function
   function getOriginalImage(target, $overlay) {
@@ -782,7 +803,7 @@
               }
             }
           } else {
-            ftType = (ftType === 'rainbow' ? 'none' : 'rainbow');
+            ftType = (ftType === 'solar' ? 'none' : 'solar');
             try {
               const target = $overlay.find('img:visible').hide()[0];
               let $displayImage;
@@ -798,6 +819,25 @@
               if (!(err instanceof TypeError)) {
                 console.warn(err);
               }
+            }
+          }
+          break;
+        case 'A': case 'a':
+          ftType = (ftType === 's2lar' ? 'none' : 's2lar');
+          try {
+            const target = $overlay.find('img:visible').hide()[0];
+            let $displayImage;
+            if (ftType === 'none') {
+              $displayImage = $(getOriginalImage(target.targetImage, $overlay));
+            } else {
+              $displayImage = $(getFilteredImage(target.targetImage, ftType, $overlay));
+            }
+            $displayImage
+              .css('outline-color', target.style['outline-color'])
+              .show();
+          } catch (err) {
+            if (!(err instanceof TypeError)) {
+              console.warn(err);
             }
           }
           break;

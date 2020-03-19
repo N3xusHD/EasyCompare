@@ -1,11 +1,11 @@
 //jshint esversion:8
-let Rc, Gc, Bc;
+let R, G, B;
 self.onmessage = (e) => {
   const key = e.data.key;
-  if (e.data.Rc && e.data.Gc && e.data.Bc) {
-    Rc = new Uint8ClampedArray(e.data.Rc);
-    Gc = new Uint8ClampedArray(e.data.Gc);
-    Bc = new Uint8ClampedArray(e.data.Bc);
+  if (e.data.R && e.data.G && e.data.B) {
+    R = new Uint8ClampedArray(e.data.R);
+    G = new Uint8ClampedArray(e.data.G);
+    B = new Uint8ClampedArray(e.data.B);
     self.postMessage({
       result: true
     });
@@ -18,9 +18,9 @@ self.onmessage = (e) => {
       for (let row = 0; row < height; ++row) {
         for (let col = 0; col < width; ++col) {
           let ind = col * 4 + row * width * 4;
-          filter[ind] = Rc[img[ind]];
-          filter[ind + 1] = Gc[img[ind + 1]];
-          filter[ind + 2] = Bc[img[ind + 2]];
+          filter[ind] = R[img[ind]];
+          filter[ind + 1] = G[img[ind + 1]];
+          filter[ind + 2] = B[img[ind + 2]];
           filter[ind + 3] = img[ind + 3];
         }
       }
