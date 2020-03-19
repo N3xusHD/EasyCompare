@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.6
+// @version            0.7
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -422,21 +422,23 @@
 
   // Function to make an <img/> element
   function makeImage(src, outlineColor = 'red') {
-    return $(`<img src="${src}"/>`).attr({
-      'class': 'easy-compare-image'
-    }).css({
-      'display': 'none',
+    const $figure = $('<figure/>').css({
+      'width': 'fit-content',
+      'position': 'fixed',
       'top': '50%',
       'left': '50%',
-      'position': 'fixed',
+      'margin': '0',
+      'vertical-align': 'middle'
+    });
+    const $image = $(`<img src="${src}"/>`).css({
+      'display': 'none',
       'transform': 'translate(-50%, -50%)',
-      'max-width': '100%',
-      'height': 'auto',
       'opacity': '1',
       'outline': '3px solid ' + outlineColor,
       'outline-offset': '2px',
-      'vertical-align': 'middle'
     });
+    $figure.append($image);
+    return $image;
   }
 
   // Function fired when compare button is activated
@@ -474,13 +476,8 @@
     } else {
       const originalImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
       originalImage.ready = false;
-      const naturalHeight = originalImage.naturalHeight;
       originalImage.targetImage = target;
-      $overlay.append(
-        $('<figure/>').css({
-          'width': 'fit-content'
-        }).append(originalImage)
-      );
+      $overlay.append(originalImage.parentElement);
       if (!target.easyCompare) {
         target.easyCompare = {};
       }
@@ -546,16 +543,10 @@
     } else {
       const diffedImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
       diffedImage.ready = false;
-      const naturalHeight =
-        diffedImage.targetImage = target;
       diffedImage.baseImage = base;
       diffedImage.threshold = -1;
       diffedImage.step = 0.001;
-      $overlay.append(
-        $('<figure/>').css({
-          'width': 'fit-content'
-        }).append(diffedImage)
-      );
+      $overlay.append(diffedImage.parentElement);
       if (!target.easyCompare) {
         target.easyCompare = {};
       }
@@ -618,11 +609,7 @@
       const filteredImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
       filteredImage.ready = false;
       filteredImage.targetImage = target;
-      $overlay.append(
-        $('<figure/>').css({
-          'width': 'fit-content'
-        }).append(filteredImage)
-      );
+      $overlay.append(filteredImage.parentElement);
       if (!target.easyCompare) {
         target.easyCompare = {};
       }

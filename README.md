@@ -71,6 +71,9 @@
   |      `S/s`       | 开启/关闭 solar curve 曲线滤镜                          | Toggle on/off solar curve filter                                                   |
   |   `Ctrl + S/s`   | 保存当前显示的图片到本地                                | Save the current displayed image to the local                                      |
   |   `Ctrl + L/l`   | 清除图像缓存                                            | Clear image caches                                                                 |
+  |   `Ctrl + =/+`   | 放大图像                                                | Zoom in                                                                            |
+  |   `Ctrl + -/_`   | 缩小图像                                                | Zoom out                                                                           |
+  |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                      | Resize to the original size                                                        |
 
 ## 待办 TODOs
 
@@ -100,8 +103,8 @@
 
 ## 演示 Demo
 
-|     功能 Feature     |                                          演示 Demo                                           |
-| :------------------: | :------------------------------------------------------------------------------------------: |
+|      功能 Feature       |                                            演示 Demo                                             |
+| :---------------------: | :----------------------------------------------------------------------------------------------: |
 | 肉眼比较<br>Human eyes  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo1.gif) |
 | 像素比较<br>Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
 | 彩虹曲线<br>Solar Curve | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
