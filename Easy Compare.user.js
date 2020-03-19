@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.7
+// @version            0.7.1
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -543,6 +543,7 @@
     } else {
       const diffedImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
       diffedImage.ready = false;
+      diffedImage.targetImage = target;
       diffedImage.baseImage = base;
       diffedImage.threshold = -1;
       diffedImage.step = 0.001;
