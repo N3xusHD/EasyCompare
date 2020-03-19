@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.5
+// @version            0.6
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -31,6 +31,8 @@
 // @connect            picgd.com
 // @connect            tu.totheglory.im
 // @connect            tpimg.ccache.org
+// @connect            pterclub.com
+// @connect            catbox.moe
 // @connect            *
 
 // ==/UserScript==
@@ -136,7 +138,9 @@
   // Skip redirections
   const skipRedirLib = [
     [/^https?:\/\/anonym\.to\/\?(.*)$/, (_, p1) => decodeURIComponent(p1)],
-    [/^https?:\/\/www\.dereferer\.org\/\?(.*)$/, (_, p1) => decodeURIComponent(p1)]
+    [/^https?:\/\/www\.dereferer\.org\/\?(.*)$/, (_, p1) => decodeURIComponent(p1)],
+    [/^(?:https?:\/\/pterclub\.com)?\/link\.php\?sign=.+?&target=(.*)$/, (_, p1) => decodeURIComponent(p1.replace(/\+/g, ' ')).replace(/ /g, '%20')],
+    [/^.*?imagecache\.php\?url=(.*)$/, (_, p1) => decodeURIComponent(p1.replace(/\+/g, ' ')).replace(/ /g, '%20')]
   ];
 
   // Probable original image selectors on a view page
@@ -478,21 +482,22 @@
         }
         // Guess original src from hyper link
         let href, hrefOriginal;
-        if ((hrefOriginal = target.parentElement.href, href = hrefOriginal) &&
-          !href.match(/\.png$|\.jpe?g$|\.webp$/)) {
+        if ((hrefOriginal = target.parentElement.href, href = hrefOriginal)) {
           for (let pairs of skipRedirLib) {
             href = href.replace(pairs[0], pairs[1]);
             if (href !== hrefOriginal) {
               break;
             }
           }
-          guessOriginalImage(href).then(src => {
-            originalImage.src = src || realSrc;
+          if (href.match(/\.png$|\.jpe?g$|\.webp|\.gif|\.bmp|\.svg$/)) {
+            originalImage.src = href;
             resolve(originalImage);
-          });
-        } else if (href && href.match(/\.png$|\.jpe?g$|\.webp$/)) {
-          originalImage.src = href;
-          resolve(originalImage);
+          } else {
+            guessOriginalImage(href).then(src => {
+              originalImage.src = src || realSrc;
+              resolve(originalImage);
+            });
+          }
         } else {
           originalImage.src = realSrc;
           resolve(originalImage);
