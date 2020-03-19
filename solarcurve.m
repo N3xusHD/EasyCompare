@@ -6,17 +6,17 @@ B = 3/32768*(k*pi - 128/t);
 C = 1/t;
 
 %% curve function
-x = 0:0.01:255;
+x = 0:1:255;
 R = @(x) round(127.9999*sin(A*(x).^3 + B*(x).^2 + C*(x) - pi/2) + 127.5);
 G = @(x) R(x - 5);
 B = @(x) R(x + 5);
 
 %% visiualization
 figure("Name", "Solar Curve");
-plot(x, R(R(x)), "r");
+plot(x, R(x), "r");
 hold on;
-plot(x, G(G(x)), "g");
-plot(x, B(B(x)), "b");
+plot(x, G(x), "g");
+plot(x, B(x), "b");
 hold off
 grid on
 title("Solar Curve");
