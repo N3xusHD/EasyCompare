@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.7.1
+// @version            0.7.2
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -34,7 +34,6 @@
 // @connect            pterclub.com
 // @connect            catbox.moe
 // @connect            *
-
 // ==/UserScript==
 
 // # TODO List
@@ -200,7 +199,7 @@
       GM_xmlhttpRequest({
         url: src,
         method: 'GET',
-        responseType: 'arraybuffer',
+        overrideMimeType: 'text/plain; charset=x-user-defined',
         onprogress: (e) => {
           if (e.total !== -1) {
             fn(e.loaded / e.total);
@@ -211,7 +210,13 @@
         },
         onload: (e) => {
           if (e.status === 200) {
-            resolve(e.response);
+            const imageResponseText = e.responseText;
+            const l = imageResponseText.length;
+            const imageArrayBuffer = new Uint8Array(l);
+            for (let i = 0; i < l; i++) {
+              imageArrayBuffer[i] = imageResponseText.charCodeAt(i);
+            }
+            resolve(imageArrayBuffer);
           }
           else {
             console.warn(e);
@@ -225,30 +230,13 @@
       });
     });
     if (imageArrayBuffer) {
-      /*
-      const upngObj = UPNG.decode(imageArrayBuffer);
-      console.log(upngObj);
-      if(upngObj.data) {
-        return {
-          raw: upngObj.data,
-          width: upngObj.width,
-          height: upngObj.height
-        };
-      }
-      else {
-        return null;
-      }
-      */
       return new Promise(async (resolve) => {
-        const url = await new Promise((resolve) => {
-          const fr = new FileReader();
-          fr.onload = e => resolve(fr.result);
-          fr.readAsDataURL(new Blob([new Uint8Array(imageArrayBuffer)], { type: 'image/png' }));
-        });
+        const url = URL.createObjectURL(new Blob([imageArrayBuffer], { type: 'image/png' }));
         const img = new Image();
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         img.onload = function () {
+          URL.revokeObjectURL(url);
           const [width, height] = [this.width, this.height];
           canvas.width = width;
           canvas.height = height;
