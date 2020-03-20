@@ -56,24 +56,25 @@
 
   > Several hot-keys are supported for better user experience, including:
 
-  |      键 Key      | 功能                                                    | Function                                                                           |
-  | :--------------: | ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-  |      `Esc`       | 退出截图比较模式                                        | Deactivate compare mode                                                            |
-  |      `Q/q`       | 半透明化截图比较界面，以便显示出原页面中的元素          | Semi-transparentize the interface, allowing user to view the elements on the page  |
-  |      `W/w`       | 跳到往前数第 `num` 张图片并显示                         | Jump to the nth previous image and display                                         |
-  |      `E/e`       | 跳到往后数第 `num` 张图片并显示                         | Jump to the nth next image and display                                             |
-  |    `Num Key`     | `num` 的值，默认是 `1`，有效值为 `0`-`9`，`0` 代表 `10` | The value of `n` in "nth". `0`-`9` are valid numbers and `0` is recognized as `10` |
-  |     `Shift`      | 用于激活 Image Diff                                     | Activate Image Diff                                                                |
-  |  `ArrowUp/I/i`   | 增加 Image Diff 阈值（0-1），降低敏感度                 | Increase Image Diff threshold and decrease sensitivity                             |
-  | `ArrowDown/K/k`  | 降低 Image Diff 阈值（0-1），增加敏感度                 | Decrease Image Diff threshold and increase sensitivity                             |
-  | `ArrowLeft/J/j`  | 增加阈值调整步长                                        | Increase the step when adjusting the threshold                                     |
-  | `ArrowRight/L/l` | 减小阈值调整步长                                        | Decrease the step when adjusting the threshold                                     |
-  |      `S/s`       | 开启/关闭 solar curve 曲线滤镜                          | Toggle on/off solar curve filter                                                   |
-  |   `Ctrl + S/s`   | 保存当前显示的图片到本地                                | Save the current displayed image to the local                                      |
-  |   `Ctrl + L/l`   | 清除图像缓存                                            | Clear image caches                                                                 |
-  |   `Ctrl + =/+`   | 放大图像                                                | Zoom in                                                                            |
-  |   `Ctrl + -/_`   | 缩小图像                                                | Zoom out                                                                           |
-  |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                      | Resize to the original size                                                        |
+  |      键 Key      | 功能                                                             | Function                                                                           |
+  | :--------------: | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+  |      `Esc`       | 退出截图比较模式                                                 | Deactivate compare mode                                                            |
+  |      `Q/q`       | 半透明化截图比较界面，以便显示出原页面中的元素                   | Semi-transparentize the interface, allowing user to view the elements on the page  |
+  |      `W/w`       | 跳到往前数第 `num` 张图片并显示                                  | Jump to the nth previous image and display                                         |
+  |      `E/e`       | 跳到往后数第 `num` 张图片并显示                                  | Jump to the nth next image and display                                             |
+  |    `Num Key`     | `num` 的值，默认是 `1`，有效值为 `0`-`9`，`0` 代表 `10`          | The value of `n` in "nth". `0`-`9` are valid numbers and `0` is recognized as `10` |
+  |     `Shift`      | 用于激活 Image Diff                                              | Activate Image Diff                                                                |
+  |  `ArrowUp/I/i`   | 增加 Image Diff 阈值（0-1），降低敏感度                          | Increase Image Diff threshold and decrease sensitivity                             |
+  | `ArrowDown/K/k`  | 降低 Image Diff 阈值（0-1），增加敏感度                          | Decrease Image Diff threshold and increase sensitivity                             |
+  | `ArrowLeft/J/j`  | 增加阈值调整步长                                                 | Increase the step when adjusting the threshold                                     |
+  | `ArrowRight/L/l` | 减小阈值调整步长                                                 | Decrease the step when adjusting the threshold                                     |
+  |      `S/s`       | 开启/关闭 solar curve 曲线滤镜                                   | Toggle on/off solar curve filter                                                   |
+  |      `A/a`       | 开启/关闭 s2lar curve 曲线滤镜（相当于应用2次 solar curve 滤镜） | Toggle on/off s2lar curve filter (solar curve ^ 2)                                 |
+  |   `Ctrl + S/s`   | 保存当前显示的图片到本地                                         | Save the current displayed image to the local                                      |
+  |   `Ctrl + L/l`   | 清除图像缓存                                                     | Clear image caches                                                                 |
+  |   `Ctrl + =/+`   | 放大图像                                                         | Zoom in                                                                            |
+  |   `Ctrl + -/_`   | 缩小图像                                                         | Zoom out                                                                           |
+  |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                               | Resize to the original size                                                        |
 
 ## 待办 TODOs
 
