@@ -10,8 +10,8 @@
 // @include            *
 // @require            https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js
 // @require            https://bundle.run/pixelmatch@5.1.0
-// /require            https://cdn.staticfile.org/pako/1.0.10/pako.min.js
-// /require            https://cdn.staticfile.org/upng-js/2.1.0/UPNG.min.js
+// @require            https://cdn.staticfile.org/pako/1.0.10/pako.min.js
+// @require            https://cdn.staticfile.org/upng-js/2.1.0/UPNG.min.js
 // @namespace          https://greasyfork.org/users/152136
 // @icon               data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23008000'%3E%3Cpath id='ld' d='M20 6H10c-2.21 0-4 1.79-4 4v28c0 2.21 1.79 4 4 4h10v4h4V2h-4v4zm0 30H10l10-12v12zM38 6H28v4h10v26L28 24v18h10c2.21 0 4-1.79 4-4V10c0-2.21-1.79-4-4-4z'/%3E%3C/svg%3E
 // @grant              GM_xmlhttpRequest
@@ -113,6 +113,60 @@
     }
   }
 
+  function base64Uint8Array(bytes) {
+    let base64 = '';
+    const encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+    const byteLength = bytes.byteLength;
+    const byteRemainder = byteLength % 3;
+    const mainLength = byteLength - byteRemainder;
+
+    let a;
+    let b;
+    let c;
+    let d;
+    let chunk;
+
+    // Main loop deals with bytes in chunks of 3
+    for (let i = 0; i < mainLength; i += 3) {
+      // Combine the three bytes into a single integer
+      chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+
+      // Use bitmasks to extract 6-bit segments from the triplet
+      a = (chunk & 16515072) >> 18; // 16515072 = (2^6 - 1) << 18
+      b = (chunk & 258048) >> 12; // 258048 = (2^6 - 1) << 12
+      c = (chunk & 4032) >> 6; // 4032 = (2^6 - 1) << 6
+      d = chunk & 63; // 63 = 2^6 - 1
+
+      // Convert the raw binary segments to the appropriate ASCII encoding
+      base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d];
+    }
+
+    // Deal with the remaining bytes and padding
+    if (byteRemainder === 1) {
+      chunk = bytes[mainLength];
+
+      a = (chunk & 252) >> 2; // 252 = (2^6 - 1) << 2
+
+      // Set the 4 least significant bits to zero
+      b = (chunk & 3) << 4; // 3   = 2^2 - 1
+
+      base64 += `${encodings[a]}${encodings[b]}==`;
+    } else if (byteRemainder === 2) {
+      chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1];
+
+      a = (chunk & 64512) >> 10; // 64512 = (2^6 - 1) << 10
+      b = (chunk & 1008) >> 4; // 1008  = (2^6 - 1) << 4
+
+      // Set the 2 least significant bits to zero
+      c = (chunk & 15) << 2; // 15    = 2^4 - 1
+
+      base64 += `${encodings[a]}${encodings[b]}${encodings[c]}=`;
+    }
+
+    return base64;
+  }
+
   // Title: Mousetrap Pause Plugin
   // Reference: https://github.com/ccampbell/mousetrap/tree/master/plugins/pause
   if (Mousetrap) {
@@ -212,7 +266,7 @@
 
   // Get image uint8 array buffer
   async function getImageBytesBuffer(src, fn) {
-    const imageArrayBuffer = await new Promise((resolve) => {
+    return new Promise((resolve) => {
       GM_xmlhttpRequest({
         url: src,
         method: 'GET',
@@ -229,11 +283,46 @@
           if (e.status === 200) {
             const imageResponseText = e.responseText;
             const l = imageResponseText.length;
-            const imageArrayBuffer = new Uint8Array(l);
+            const bytes = new Uint8Array(l);
             for (let i = 0; i < l; i++) {
-              imageArrayBuffer[i] = imageResponseText.charCodeAt(i) & 0xff;
+              bytes[i] = imageResponseText.charCodeAt(i) & 0xff;
             }
-            resolve(imageArrayBuffer);
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            let url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
+            let flag = true;
+            img.onload = () => {
+              if (flag) {
+                URL.revokeObjectURL(url);
+              }
+              const [width, height] = [img.width, img.height];
+              canvas.width = width;
+              canvas.height = height;
+              context.drawImage(img, 0, 0, width, height);
+              resolve({
+                raw: context.getImageData(0, 0, width, height).data.buffer,
+                width: width,
+                height: height
+              });
+            };
+            img.onerror = () => {
+              URL.revokeObjectURL(url);
+              flag = false;
+              url = `data:image/png;base64,${base64Uint8Array(bytes)}`;
+              img.onerror = () => {
+                // TODO: Put below in the worker (if worker is available) or it will block the UI;
+                const img = UPNG.decode(bytes);
+                const raw = UPNG.toRGBA8(img)[0];
+                resolve({
+                  raw: raw,
+                  width: img.width,
+                  height: img.height
+                });
+              }
+              img.src = url;
+            };
+            img.src = url;
           }
           else {
             console.warn(e);
@@ -246,33 +335,6 @@
         }
       });
     });
-    if (imageArrayBuffer) {
-      return new Promise(async (resolve) => {
-        const url = URL.createObjectURL(new Blob([imageArrayBuffer], { type: 'image/png' }));
-        const img = new Image();
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        img.onload = function () {
-          URL.revokeObjectURL(url);
-          const [width, height] = [this.width, this.height];
-          canvas.width = width;
-          canvas.height = height;
-          context.drawImage(this, 0, 0, width, height);
-          resolve({
-            raw: context.getImageData(0, 0, width, height).data.buffer,
-            width: width,
-            height: height
-          });
-        };
-        img.onerror = function () {
-          resolve(null);
-        };
-        img.src = url;
-      });
-    }
-    else {
-      return null;
-    }
   }
 
   // Filter function mapping
@@ -362,7 +424,6 @@
       img1.height === img2.height
     ) {
       onprogress(null, null);
-
       if (worker) {// async diff
         const [raw1, raw2, width, height] = [img1.raw, img2.raw, img1.width, img1.height];
         const key = '' + Date.now();
@@ -501,6 +562,7 @@
             originalImage.style.width = `${scale * 100}%`;
             originalImage.ready = true;
             resolve(originalImage);
+            return;
           }
         }
         // Guess original src from hyper link
@@ -517,12 +579,14 @@
             originalImage.style.width = `${scale * 100}%`;
             originalImage.ready = true;
             resolve(originalImage);
+            return;
           } else {
             guessOriginalImage(href).then(src => {
               originalImage.src = src || realSrc;
               originalImage.style.width = `${scale * 100}%`;
               originalImage.ready = true;
               resolve(originalImage);
+              return;
             });
           }
         } else {
@@ -530,6 +594,7 @@
           originalImage.style.width = `${scale * 100}%`;
           originalImage.ready = true;
           resolve(originalImage);
+          return;
         }
       });
       return originalImage;
