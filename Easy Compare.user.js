@@ -319,7 +319,7 @@
                   width: img.width,
                   height: img.height
                 });
-              }
+              };
               img.src = url;
             };
             img.src = url;
