@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.7.3
+// @version            0.7.4
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -231,7 +231,7 @@
             const l = imageResponseText.length;
             const imageArrayBuffer = new Uint8Array(l);
             for (let i = 0; i < l; i++) {
-              imageArrayBuffer[i] = imageResponseText.charCodeAt(i);
+              imageArrayBuffer[i] = imageResponseText.charCodeAt(i) & 0xff;
             }
             resolve(imageArrayBuffer);
           }
@@ -282,7 +282,7 @@
   };
 
   function rgbCurve(raw, filter, width, height, rgb) {
-    [R, G, B] = rgb;
+    const [R, G, B] = rgb;
     for (let row = 0; row < height; ++row) {
       for (let col = 0; col < width; ++col) {
         let ind = col * 4 + row * width * 4;
