@@ -306,7 +306,6 @@
           }
         },
         onload: (e) => {
-          console.log(e.responseHeaders);
           if (e.status === 200) {
             // Get binary from text
             const imageResponseText = e.responseText;
@@ -318,7 +317,8 @@
             // Decode png binary and resolve the image data arraybuffer,
             // createImageBitmap is a multi-thread operation,
             // and won't complain about CSP img-src errors when using Image object
-            createImageBitmap(new Blob([bytes], { type: 'image/png' }))
+            const type = (e.responseHeaders.match(/content\-type: *(.+)(\n|$)/) || [, 'image/png'])[1];
+            createImageBitmap(new Blob([bytes], { type: type }))
               .then((e) => {
                 const [width, height] = [e.width, e.height];
                 const canvas = document.createElement('canvas');
