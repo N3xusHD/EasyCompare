@@ -484,17 +484,27 @@
         canvas: originalCanvas,
         context: originalContext
       } = makeCanvas();
+      const updateProgress = (p) => {
+        if (p !== null && p >= 0) {
+          originalCanvas.width = 120;
+          originalContext.font = '16px sans serif';
+          originalContext.fillStyle = 'rgba(255, 255, 255, 255)';
+          originalContext.fillText(`Loading ${(p * 100).toFixed(1)}%`, 0, 15);
+        } else if (p < 0) {
+          originalCanvas.width = 80;
+          originalContext.font = '16px sans serif';
+          originalContext.fillStyle = 'rgba(255, 255, 255, 255)';
+          originalContext.fillText('Loading...', 0, 15);
+        }
+      };
       const resolveOriginal = (src, resolve) => {
-        const img = new Image();
-        img.src = src;
-        createImageBitmap(img).then((bitmap) => {
+        GM_getImageData(src, updateProgress).then((originalImageData) => {
           originalCanvas.src = src;
-          originalCanvas.width = bitmap.width;
-          originalCanvas.height = bitmap.height;
-          originalContext.drawImage(bitmap, 0, 0);
+          originalCanvas.width = originalImageData.width;
+          originalCanvas.height = originalImageData.height;
+          originalContext.putImageData(originalImageData, 0, 0);
           originalCanvas.style.width = `${scale * 100}%`;
           originalCanvas.ready = true;
-          bitmap.close();
           resolve(originalCanvas);
         });
       };
@@ -618,6 +628,8 @@
       })).then((diffedImageData) => {
         if (diffedImageData === null) {
           diffedCanvas.width = 120;
+          diffedContext.font = '16px sans serif';
+          diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
           diffedContext.fillText('Sizes Not Match', 0, 15);
         } else {
           diffedCanvas.width = diffedImageData.width;
@@ -630,6 +642,8 @@
       }).catch((err) => {
         console.warn(err);
         diffedCanvas.width = 120;
+        diffedContext.font = '16px sans serif';
+        diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
         diffedContext.fillText('Sth. Went Wrong', 0, 15);
       });
       return diffedCanvas;
