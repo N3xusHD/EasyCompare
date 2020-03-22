@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.8.0
+// @version            0.8.2
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -480,24 +480,43 @@
       }
       return originalImage;
     } else {
-      const originalImage = makeImage(text2SVGDataURL(`Loading...`, 80))[0];
-      originalImage.ready = false;
-      originalImage.targetImage = target;
-      $overlay.append(originalImage.parentElement);
+      const {
+        canvas: originalCanvas,
+        context: originalContext
+      } = makeCanvas();
+      const resolveOriginal = (src, resolve) => {
+        const img = new Image();
+        img.src = src;
+        createImageBitmap(img).then((bitmap) => {
+          originalCanvas.src = src;
+          originalCanvas.width = bitmap.width;
+          originalCanvas.height = bitmap.height;
+          originalContext.drawImage(bitmap, 0, 0);
+          originalCanvas.style.width = `${scale * 100}%`;
+          originalCanvas.ready = true;
+          bitmap.close();
+          resolve(originalCanvas);
+        });
+      };
+      originalCanvas.width = 80;
+      originalCanvas.height = 20;
+      originalContext.font = '16px sans serif';
+      originalContext.fillStyle = 'rgba(255, 255, 255, 255)';
+      originalContext.fillText('Loading...', 0, 15);
+      originalCanvas.ready = false;
+      originalCanvas.targetImage = target;
+      $overlay.append(originalCanvas.parentElement);
       if (!target.easyCompare) {
         target.easyCompare = {};
       }
-      target.easyCompare.originalImage = originalImage;
-      target.easyCompare.originalImagePromise = new Promise((resolve) => {
+      target.easyCompare.originalImage = originalCanvas;
+      target.easyCompare.originalImagePromise = new Promise(async (resolve) => {
         let realSrc = target.src;
         // Parse original src from thumb src
         for (let pairs of t2oLib) {
           realSrc = realSrc.replace(pairs[0], pairs[1]);
           if (realSrc !== target.src) {
-            originalImage.src = realSrc;
-            originalImage.style.width = `${scale * 100}%`;
-            originalImage.ready = true;
-            resolve(originalImage);
+            resolveOriginal(realSrc, resolve);
             return;
           }
         }
@@ -511,29 +530,20 @@
             }
           }
           if (href.match(/\.png$|\.jpe?g$|\.webp|\.gif|\.bmp|\.svg$/)) {
-            originalImage.src = href;
-            originalImage.style.width = `${scale * 100}%`;
-            originalImage.ready = true;
-            resolve(originalImage);
+            resolveOriginal(href, resolve);
             return;
           } else {
             guessOriginalImage(href).then(src => {
-              originalImage.src = src || realSrc;
-              originalImage.style.width = `${scale * 100}%`;
-              originalImage.ready = true;
-              resolve(originalImage);
+              resolveOriginal(src || realSrc, resolve);
               return;
             });
           }
         } else {
-          originalImage.src = realSrc;
-          originalImage.style.width = `${scale * 100}%`;
-          originalImage.ready = true;
-          resolve(originalImage);
+          resolveOriginal(realSrc, resolve);
           return;
         }
       });
-      return originalImage;
+      return originalCanvas;
     }
   }
   // Get diffed image function
