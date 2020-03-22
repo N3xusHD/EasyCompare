@@ -18,7 +18,7 @@
 
   > Compare screenshots in place without downloading/uploading images to other sites;
 
-- 可用于不同的图床，有可扩展性；
+- 支持不同的图床，有可扩展性；
 
   > Support multiple image hosts, which can be configured and extended;
 
@@ -32,49 +32,39 @@
 
 - 支持 **Image Diff**，即像素级别比较两张图片中的差异并通过颜色标出。该功能需配合 `Shift` 键使用，按下 `Shift` 键时，当前活动图片会作为基准图片，通过鼠标或键盘快捷键移动到其他图片上时（移动时需按住 `Shift` 不放），便会将基准图片与该图片进行比较，比较结束后结果会显示在浏览器中央，并可通过 `ArrowUp`、`ArrowDown`、`ArrowLeft`、`ArrowRight` 或 `I/i`、`K/k`、`J/j`、`L/l` 快捷键调整该比较的阈值/敏感度。该功能核心代码来自于[mapbox/pixelmatch](https://github.com/mapbox/pixelmatch)；
 
-  注意：
-  - Image Diff 使用 `<canvas>` 元素实现 PNG 的解码，目前尚不支持 10bit；
-  - 部分网站内容安全策略会限定内容来源，因此会无法使用此功能；
-  - Image Diff 支持 objectURL/dataURL Web Worker，但与站点的内容安全策略有关。若站点不支持，则会退化为单线程阻塞模式。
-
   > **Image Diff** is supported, which is comparing two images pixel-wisely and marking all the different pixels with colors. This feature requires the `Shift` key. When `Shift` is pressed down, the active image will be used as the base image. When users move the cursor to another image or use the hot-keys to focus on another image (`Shift` needs holding in the mean time), the base image will be compared to that image, and the result will be displayed over the center of the page when diffing is finished. Users can use `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight` or `I/i`, `K/k`, `J/j`, `L/l` hot-keys to adjust the threshold/sensitivity of the diffing result. The image diff core function is from [mapbox/pixelmatch](https://github.com/mapbox/pixelmatch);
 
-  > Notes:
-  > - Image Diff uses `<canvas>` element to decode PNG format, so 10bit hasn't been supported yet;
-  > - Some sites will restrict the origin of the content due to CSP. Image Diff cannot work on these sites;
-  > - Web worker is used on Image Diff, but the site CSP can block objectURL/dataURL web workers. When it does, single thread blocking mode is used.
+- 支持 **Solar Curve** 曲线滤镜，使用该滤镜可以很清晰地看到图像中的色带等瑕疵；
 
-- 支持 **solar curve** 曲线滤镜，使用该滤镜可以很清晰地看到图像中的色带等瑕疵；
+  > **Solar Curve** filter is supported for better recognition of bandings or other defects in the image, making it more friendly to human eyes;
 
-  > **Solar curve** filter is supported for better recognition of bandings or other defects in the image, making it more friendly to human eyes;
-
-  |                                                 Comparisons of bandings under solar curve filter                                                  |
-  | :-----------------------------------------------------------------------------------------------------------------------------------------------: |
-  | ![Bandings under solar curve filter](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/bandings%20under%20solar%20curve%20filter.png) |
+  |                                              Solar Curve                                               |                                                     Comparisons of bandings under Solar Curve filter                                                     |
+  | :----------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------: |
+  | ![Solar Curve](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/solar%20curve.png) | ![Bandings under Solar Curve filter](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/bandings%20under%20solar%20curve%20filter.png) |
 
 - 配合快捷键可以进行一些便捷操作，包括：
 
   > Several hot-keys are supported for better user experience, including:
 
-  |      键 Key      | 功能                                                             | Function                                                                           |
-  | :--------------: | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-  |      `Esc`       | 退出截图比较模式                                                 | Deactivate compare mode                                                            |
-  |      `Q/q`       | 半透明化截图比较界面，以便显示出原页面中的元素                   | Semi-transparentize the interface, allowing user to view the elements on the page  |
-  |      `W/w`       | 跳到往前数第 `num` 张图片并显示                                  | Jump to the nth previous image and display                                         |
-  |      `E/e`       | 跳到往后数第 `num` 张图片并显示                                  | Jump to the nth next image and display                                             |
-  |    `Num Key`     | `num` 的值，默认是 `1`，有效值为 `0`-`9`，`0` 代表 `10`          | The value of `n` in "nth". `0`-`9` are valid numbers and `0` is recognized as `10` |
-  |     `Shift`      | 用于激活 Image Diff                                              | Activate Image Diff                                                                |
-  |  `ArrowUp/I/i`   | 增加 Image Diff 阈值（0-1），降低敏感度                          | Increase Image Diff threshold and decrease sensitivity                             |
-  | `ArrowDown/K/k`  | 降低 Image Diff 阈值（0-1），增加敏感度                          | Decrease Image Diff threshold and increase sensitivity                             |
-  | `ArrowLeft/J/j`  | 增加阈值调整步长                                                 | Increase the step when adjusting the threshold                                     |
-  | `ArrowRight/L/l` | 减小阈值调整步长                                                 | Decrease the step when adjusting the threshold                                     |
-  |      `S/s`       | 开启/关闭 solar curve 曲线滤镜                                   | Toggle on/off solar curve filter                                                   |
-  |      `A/a`       | 开启/关闭 s2lar curve 曲线滤镜（相当于应用2次 solar curve 滤镜） | Toggle on/off s2lar curve filter (solar curve ^ 2)                                 |
-  |   `Ctrl + S/s`   | 保存当前显示的图片到本地                                         | Save the current displayed image to the local                                      |
-  |   `Ctrl + L/l`   | 清除图像缓存                                                     | Clear image caches                                                                 |
-  |   `Ctrl + =/+`   | 放大图像                                                         | Zoom in                                                                            |
-  |   `Ctrl + -/_`   | 缩小图像                                                         | Zoom out                                                                           |
-  |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                               | Resize to the original size                                                        |
+  |      键 Key      | 功能                                                               | Function                                                                           |
+  | :--------------: | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+  |      `Esc`       | 退出截图比较模式                                                   | Deactivate compare mode                                                            |
+  |      `Q/q`       | 半透明化截图比较界面，以便显示出原页面中的元素                     | Semi-transparentize the interface, allowing user to view the elements on the page  |
+  |      `W/w`       | 跳到往前数第 `num` 张图片并显示                                    | Jump to the nth previous image and display                                         |
+  |      `E/e`       | 跳到往后数第 `num` 张图片并显示                                    | Jump to the nth next image and display                                             |
+  |    `Num Key`     | `num` 的值，默认是 `1`，有效值为 `0`-`9`，`0` 代表 `10`            | The value of `n` in "nth". `0`-`9` are valid numbers and `0` is recognized as `10` |
+  |     `Shift`      | 用于激活 Image Diff                                                | Activate Image Diff                                                                |
+  |  `ArrowUp/I/i`   | 增加 Image Diff 阈值（0-1），降低敏感度                            | Increase Image Diff threshold and decrease sensitivity                             |
+  | `ArrowDown/K/k`  | 降低 Image Diff 阈值（0-1），增加敏感度                            | Decrease Image Diff threshold and increase sensitivity                             |
+  | `ArrowLeft/J/j`  | 增加阈值调整步长                                                   | Increase the step when adjusting the threshold                                     |
+  | `ArrowRight/L/l` | 减小阈值调整步长                                                   | Decrease the step when adjusting the threshold                                     |
+  |      `S/s`       | 开启/关闭 Solar Curve 曲线滤镜                                     | Toggle on/off Solar Curve filter                                                   |
+  |      `A/a`       | 开启/关闭 S2lar Curve 曲线滤镜（相当于应用 2 次 Solar Curve 滤镜） | Toggle on/off S2lar Curve filter (Solar Curve ^ 2)                                 |
+  |   `Ctrl + S/s`   | 保存当前显示的图片到本地                                           | Save the current displayed image to the local                                      |
+  |   `Ctrl + L/l`   | 清除图像缓存                                                       | Clear image caches                                                                 |
+  |   `Ctrl + =/+`   | 放大图像                                                           | Zoom in                                                                            |
+  |   `Ctrl + -/_`   | 缩小图像                                                           | Zoom out                                                                           |
+  |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                                 | Resize to the original size                                                        |
 
 ## 待办 TODOs
 
@@ -94,21 +84,17 @@
 
   > Support more filters;
 
-- [ ] 不依赖 `<canvas>` 解码；
-
-  > Do not use `<canvas>`;
-
 - [ ] 使用 WebGL 进行加速。
 
-  > Accelerate by WebGL.
+  > Accelerate using WebGL.
 
 ## 演示 Demo
 
-|      功能 Feature       |                                            演示 Demo                                             |
-| :---------------------: | :----------------------------------------------------------------------------------------------: |
-| 肉眼比较<br>Human eyes  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo1.gif) |
-| 像素比较<br>Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
-| 彩虹曲线<br>Solar Curve | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
+| 功能 Feature |                                            演示 Demo                                             |
+| :----------: | :----------------------------------------------------------------------------------------------: |
+|    Basics    | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo1.gif) |
+|  Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
+| Solar Curve  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
 
 ## 安装 Installation
 
@@ -116,9 +102,48 @@
 
 > Please go to [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) and install the usersript with [Tampermonkey](https://www.tampermonkey.net/) extension.
 
+## :warning: 注意 Notes
+
+- 本脚本使用 [`createImageBitmap(blob)`](https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/createImageBitmap) 实现图像的解码。为了能够正常使用本脚本，请使用[支持 `createImageBitmap` 的浏览器](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/createImageBitmap#Browser_compatibility)；
+
+  > This script uses [`createImageBitmap(blob)`](https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/createImageBitmap) to decode images. In order for the script to work properly, please use browsers that [support `createImageBitmap`](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/createImageBitmap#Browser_compatibility);
+
+- 部分站点有非常严格的内容安全策略限制，因此无法使用脚本内动态创建的 Worker，从而导致图像处理阻塞页面主线程的交互。若遇到此问题，Chrome 用户可以使用 [Content Security Policy Override](https://chrome.google.com/webstore/detail/content-security-policy-o/lhieoncdgamiiogcllfmboilhgoknmpi) 这个扩展覆写网站的内容安全策略设置。以 Awesome-HD 为例，将该扩展的规则更改为
+  ```
+  [
+    ["https://awesome-hd\\.me/", [
+        ["script-src", "script-src blob:"]
+    ]]
+  ]
+  ```
+  或
+  ```
+  [
+    ["https://awesome-hd\\.me/", [
+        ["script-src", "worker-src blob:; script-src"]
+    ]]
+  ]
+  ```
+  > Some sites have strict Content Security Policy (CSP) settings, so dynamic constructed Workers in this script may not be available. In that case, Chrome users can use [Content Security Policy Override](https://chrome.google.com/webstore/detail/content-security-policy-o/lhieoncdgamiiogcllfmboilhgoknmpi) extension to override the CSP settings of these sites. An example to overide CSP settings of Awesome-HD:
+  > ```
+  > [
+  >   ["https://awesome-hd\\.me/", [
+  >       ["script-src", "script-src blob:"]
+  >   ]]
+  > ]
+  > ```
+  > or
+  > ```
+  > [
+  >   ["https://awesome-hd\\.me/", [
+  >       ["script-src", "worker-src blob:; script-src"]
+  >   ]]
+  > ]
+  > ```
+
 ## 贡献 Contribution
 
-本脚本暂时不开放多人编辑权限，如有问题和想法请先到[Greasy Fork 反馈页面](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback)或[Github Issues 页面](https://github.com/Sec-ant/Easy-Compare/issues)提交。
+本脚本暂时不开放多人编辑权限，如有问题和想法请先到 [Greasy Fork 反馈页面](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback)或 [Github Issues 页面](https://github.com/Sec-ant/Easy-Compare/issues)提交。
 
 > The script is not open for contribution for now. Please refer to the [Greasy Fork feedback page](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback) or [Github Issues](https://github.com/Sec-ant/Easy-Compare/issues) in case of any problems or suggestions.
 
