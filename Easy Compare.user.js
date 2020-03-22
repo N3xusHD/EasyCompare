@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.8.2
+// @version            0.8.3
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -14,6 +14,8 @@
 // @icon               data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23008000'%3E%3Cpath id='ld' d='M20 6H10c-2.21 0-4 1.79-4 4v28c0 2.21 1.79 4 4 4h10v4h4V2h-4v4zm0 30H10l10-12v12zM38 6H28v4h10v26L28 24v18h10c2.21 0 4-1.79 4-4V10c0-2.21-1.79-4-4-4z'/%3E%3C/svg%3E
 // @grant              GM_xmlhttpRequest
 // @grant              GM_download
+// @grant              GM_getValue
+// @grant              GM_setValue
 // @grant              unsafewindow
 // @connect            hdbits.org
 // @connect            awesome-hd.me
@@ -41,7 +43,6 @@
 // ☑ solar curve filter toggled by "s": see bandings clearly
 // ☑ save current active image by "ctrl + s"
 // ☑ clear caches by "ctrl + l"
-// ☐ canvasless (async/sync)
 // ☐ more sites support
 // ☐ other filters?
 // ☐ webgl acceleration (webgl in worker?)
@@ -106,24 +107,45 @@
   ];
   // Filter function mapping
   const filterImage = {
-    'solar': img => rgbImage(img, solarWorker || [Rso, Gso, Bso]),
-    's2lar': img => rgbImage(img, s2larWorker || [Rs2, Gs2, Bs2])
+    'solar': img => rgbImage(img, solarWorker || rgbSolarCurve),
+    's2lar': img => rgbImage(img, s2larWorker || rgbS2larCurve)
   };
 
   /*--- Workers Initialization ---*/
   // Solar Curve
-  const [Rso, Gso, Bso] = [
-    new Uint8Array([0, 2, 9, 21, 37, 56, 78, 101, 125, 149, 172, 193, 212, 228, 241, 250, 254, 255, 252, 246, 235, 222, 206, 188, 168, 148, 127, 106, 86, 67, 49, 34, 22, 12, 5, 1, 0, 1, 6, 14, 24, 36, 50, 66, 82, 100, 118, 136, 154, 171, 188, 203, 216, 228, 238, 245, 251, 254, 255, 254, 251, 246, 239, 230, 219, 207, 194, 180, 165, 149, 134, 118, 103, 88, 73, 60, 48, 36, 26, 18, 11, 6, 2, 0, 0, 1, 4, 8, 14, 22, 30, 40, 51, 63, 75, 88, 102, 115, 129, 143, 156, 170, 182, 194, 205, 216, 225, 233, 240, 246, 250, 253, 255, 255, 254, 252, 248, 243, 237, 230, 221, 212, 201, 190, 179, 166, 154, 141, 128, 114, 101, 89, 76, 65, 54, 43, 34, 25, 18, 12, 7, 3, 1, 0, 0, 2, 5, 9, 15, 22, 30, 39, 50, 61, 73, 85, 99, 112, 126, 140, 153, 167, 180, 192, 204, 215, 225, 233, 241, 247, 251, 254, 255, 255, 253, 249, 244, 237, 229, 219, 207, 195, 182, 167, 152, 137, 121, 106, 90, 75, 61, 48, 36, 25, 16, 9, 4, 1, 0, 1, 4, 10, 17, 27, 39, 52, 67, 84, 101, 119, 137, 155, 173, 189, 205, 219, 231, 241, 249, 254, 255, 254, 250, 243, 233, 221, 206, 188, 169, 149, 128, 107, 87, 67, 49, 33, 20, 9, 3, 0, 1, 5, 14, 27, 43, 62, 83, 106, 130, 154, 177, 199, 218, 234, 246, 253]),
-    new Uint8Array([60, 39, 22, 10, 2, 0, 2, 9, 21, 37, 56, 78, 101, 125, 149, 172, 193, 212, 228, 241, 250, 254, 255, 252, 246, 235, 222, 206, 188, 168, 148, 127, 106, 86, 67, 49, 34, 22, 12, 5, 1, 0, 1, 6, 14, 24, 36, 50, 66, 82, 100, 118, 136, 154, 171, 188, 203, 216, 228, 238, 245, 251, 254, 255, 254, 251, 246, 239, 230, 219, 207, 194, 180, 165, 149, 134, 118, 103, 88, 73, 60, 48, 36, 26, 18, 11, 6, 2, 0, 0, 1, 4, 8, 14, 22, 30, 40, 51, 63, 75, 88, 102, 115, 129, 143, 156, 170, 182, 194, 205, 216, 225, 233, 240, 246, 250, 253, 255, 255, 254, 252, 248, 243, 237, 230, 221, 212, 201, 190, 179, 166, 154, 141, 128, 114, 101, 89, 76, 65, 54, 43, 34, 25, 18, 12, 7, 3, 1, 0, 0, 2, 5, 9, 15, 22, 30, 39, 50, 61, 73, 85, 99, 112, 126, 140, 153, 167, 180, 192, 204, 215, 225, 233, 241, 247, 251, 254, 255, 255, 253, 249, 244, 237, 229, 219, 207, 195, 182, 167, 152, 137, 121, 106, 90, 75, 61, 48, 36, 25, 16, 9, 4, 1, 0, 1, 4, 10, 17, 27, 39, 52, 67, 84, 101, 119, 137, 155, 173, 189, 205, 219, 231, 241, 249, 254, 255, 254, 250, 243, 233, 221, 206, 188, 169, 149, 128, 107, 87, 67, 49, 33, 20, 9, 3, 0, 1, 5, 14, 27, 43, 62, 83, 106, 130, 154, 177]),
-    new Uint8Array([56, 78, 101, 125, 149, 172, 193, 212, 228, 241, 250, 254, 255, 252, 246, 235, 222, 206, 188, 168, 148, 127, 106, 86, 67, 49, 34, 22, 12, 5, 1, 0, 1, 6, 14, 24, 36, 50, 66, 82, 100, 118, 136, 154, 171, 188, 203, 216, 228, 238, 245, 251, 254, 255, 254, 251, 246, 239, 230, 219, 207, 194, 180, 165, 149, 134, 118, 103, 88, 73, 60, 48, 36, 26, 18, 11, 6, 2, 0, 0, 1, 4, 8, 14, 22, 30, 40, 51, 63, 75, 88, 102, 115, 129, 143, 156, 170, 182, 194, 205, 216, 225, 233, 240, 246, 250, 253, 255, 255, 254, 252, 248, 243, 237, 230, 221, 212, 201, 190, 179, 166, 154, 141, 128, 114, 101, 89, 76, 65, 54, 43, 34, 25, 18, 12, 7, 3, 1, 0, 0, 2, 5, 9, 15, 22, 30, 39, 50, 61, 73, 85, 99, 112, 126, 140, 153, 167, 180, 192, 204, 215, 225, 233, 241, 247, 251, 254, 255, 255, 253, 249, 244, 237, 229, 219, 207, 195, 182, 167, 152, 137, 121, 106, 90, 75, 61, 48, 36, 25, 16, 9, 4, 1, 0, 1, 4, 10, 17, 27, 39, 52, 67, 84, 101, 119, 137, 155, 173, 189, 205, 219, 231, 241, 249, 254, 255, 254, 250, 243, 233, 221, 206, 188, 169, 149, 128, 107, 87, 67, 49, 33, 20, 9, 3, 0, 1, 5, 14, 27, 43, 62, 83, 106, 130, 154, 177, 199, 218, 234, 246, 253, 255, 253, 245, 233, 216])
-  ];
-  // S2lar Curve
-  const [Rs2, Gs2, Bs2] = [
-    new Uint8Array([0, 9, 149, 222, 1, 251, 26, 170, 166, 22, 255, 25, 173, 169, 5, 177, 246, 253, 218, 83, 33, 250, 67, 90, 241, 15, 141, 225, 4, 180, 171, 5, 206, 212, 56, 2, 0, 2, 78, 241, 168, 0, 188, 194, 2, 156, 237, 34, 73, 254, 90, 27, 231, 169, 3, 62, 199, 246, 253, 246, 199, 83, 0, 128, 254, 84, 16, 207, 215, 22, 54, 237, 194, 14, 88, 251, 154, 0, 127, 252, 193, 78, 9, 0, 0, 2, 37, 125, 241, 206, 49, 24, 203, 230, 60, 14, 182, 252, 114, 0, 99, 251, 182, 16, 52, 231, 221, 67, 1, 83, 177, 234, 253, 253, 246, 218, 130, 27, 9, 128, 254, 173, 10, 61, 219, 225, 73, 3, 128, 254, 170, 22, 48, 207, 238, 66, 5, 148, 252, 212, 101, 21, 2, 0, 0, 9, 56, 149, 250, 206, 49, 14, 188, 246, 88, 1, 143, 255, 154, 7, 61, 233, 207, 36, 39, 219, 221, 67, 5, 106, 199, 246, 253, 253, 234, 154, 43, 9, 149, 254, 84, 9, 182, 233, 50, 25, 212, 225, 30, 60, 246, 154, 0, 148, 254, 149, 37, 2, 0, 2, 37, 172, 255, 106, 14, 216, 180, 0, 170, 230, 25, 85, 255, 75, 52, 254, 107, 5, 154, 246, 253, 246, 177, 27, 67, 254, 67, 90, 247, 22, 128, 233, 8, 180, 171, 12, 235, 149, 21, 0, 2, 56, 241, 106, 66, 239, 0, 225, 101, 73, 237, 1, 249, 49, 83, 234]),
-    new Uint8Array([245, 5, 255, 56, 22, 60, 22, 37, 254, 22, 203, 88, 102, 221, 0, 233, 90, 84, 243, 20, 62, 154, 177, 106, 5, 128, 241, 10, 167, 192, 0, 201, 170, 6, 239, 82, 67, 255, 101, 0, 39, 60, 39, 2, 149, 246, 34, 100, 246, 36, 88, 255, 89, 22, 225, 167, 0, 155, 243, 67, 1, 83, 154, 177, 154, 83, 5, 49, 221, 205, 17, 75, 249, 153, 0, 114, 255, 129, 0, 165, 245, 66, 34, 222, 228, 78, 2, 22, 60, 60, 39, 2, 21, 149, 255, 148, 1, 118, 255, 134, 0, 115, 250, 179, 18, 39, 215, 237, 75, 4, 155, 255, 169, 33, 5, 62, 130, 177, 177, 154, 106, 27, 3, 87, 221, 231, 84, 4, 137, 253, 167, 22, 34, 190, 246, 102, 0, 118, 251, 171, 6, 67, 235, 228, 101, 9, 10, 39, 60, 60, 22, 0, 37, 172, 255, 148, 5, 100, 251, 165, 11, 75, 233, 212, 43, 15, 180, 249, 106, 1, 137, 255, 169, 20, 14, 83, 154, 177, 177, 130, 43, 0, 87, 233, 205, 17, 61, 237, 180, 9, 76, 248, 170, 1, 134, 251, 66, 34, 235, 193, 37, 2, 39, 60, 39, 2, 56, 212, 206, 5, 136, 239, 18, 102, 254, 76, 30, 241, 152, 4, 205, 206, 20, 43, 154, 177, 154, 62, 3, 169, 231, 10, 167, 204, 0, 190, 182, 2, 239, 82, 86, 250, 37, 10, 60, 39, 0, 149, 206, 6, 254, 26, 170, 166, 22, 255]),
-    new Uint8Array([246, 0, 225, 101, 73, 237, 0, 241, 67, 83, 253, 233, 216, 253, 199, 1, 188, 155, 25, 255, 61, 76, 253, 40, 103, 238, 14, 106, 255, 172, 78, 56, 78, 193, 246, 67, 36, 245, 118, 8, 216, 190, 3, 140, 244, 25, 101, 254, 67, 27, 177, 255, 233, 216, 233, 255, 199, 43, 33, 233, 173, 1, 137, 251, 73, 12, 190, 240, 63, 26, 207, 228, 36, 34, 188, 254, 193, 101, 56, 56, 78, 149, 228, 246, 106, 1, 100, 251, 165, 11, 63, 233, 221, 54, 15, 167, 249, 106, 1, 137, 254, 128, 3, 62, 199, 253, 245, 216, 216, 233, 253, 234, 130, 14, 33, 206, 241, 67, 9, 152, 254, 140, 5, 65, 230, 225, 75, 6, 134, 254, 154, 14, 49, 188, 255, 212, 125, 78, 56, 56, 101, 172, 241, 235, 106, 1, 82, 245, 194, 26, 30, 205, 243, 89, 2, 126, 255, 137, 1, 119, 255, 128, 3, 83, 218, 255, 233, 216, 216, 245, 246, 154, 14, 49, 233, 173, 4, 106, 255, 112, 1, 154, 253, 88, 11, 194, 228, 36, 49, 222, 241, 149, 78, 56, 78, 149, 250, 206, 22, 82, 254, 103, 22, 225, 179, 1, 153, 229, 16, 137, 233, 20, 83, 246, 233, 216, 233, 253, 130, 3, 206, 155, 25, 253, 73, 65, 255, 51, 103, 238, 6, 148, 241, 125, 56, 78, 172, 246, 22, 154, 180, 14, 253, 43, 140, 182, 39, 243, 0, 199, 245, 216, 245, 177, 3, 254])
-  ];
-  async function loadBuffer(worker, R, G, B) {
+  function solarCurve(x, t = 5, k = 5.5) {
+    const m = (k * Math.PI - 128 / t);
+    const A = -1 / 4194304 * m;
+    const B = 3 / 32768 * m;
+    const C = 1 / t;
+    return Math.round(
+      127.9999 * Math.sin(
+        A * x ** 3 + B * x ** 2 + C * x - Math.PI / 2
+      ) + 127.5
+    ) || 0;
+  }
+  let rgbSolarCurve = GM_getValue('solarCurve');
+  let rgbS2larCurve = GM_getValue('s2larCurve');
+  if (!rgbSolarCurve) {
+    rgbSolarCurve = [
+      Array.from({ length: 256 }, (_, x) => solarCurve(x)),
+      Array.from({ length: 256 }, (_, x) => solarCurve(x - 5)),
+      Array.from({ length: 256 }, (_, x) => solarCurve(x + 5))
+    ];
+    GM_setValue('solarCurve', JSON.stringify(rgbSolarCurve));
+    rgbS2larCurve = [
+      Array.from({ length: 256 }, (_, x) => rgbSolarCurve[0][[rgbSolarCurve[0][x]]]),
+      Array.from({ length: 256 }, (_, x) => rgbSolarCurve[1][[rgbSolarCurve[1][x]]]),
+      Array.from({ length: 256 }, (_, x) => rgbSolarCurve[2][[rgbSolarCurve[2][x]]])
+    ];
+    GM_setValue('s2larCurve', JSON.stringify(rgbS2larCurve));
+  } else {
+    rgbSolarCurve = JSON.parse(rgbSolarCurve);
+    rgbS2larCurve = JSON.parse(rgbS2larCurve);
+  }
+  rgbSolarCurve = rgbSolarCurve.map(e => new Uint8Array(e));
+  rgbS2larCurve = rgbS2larCurve.map(e => new Uint8Array(e));
+  async function loadBuffer(worker, [R, G, B]) {
     return new Promise((resolve) => {
       worker.onmessage = (e) => {
         resolve(e.data.result);
@@ -149,10 +171,10 @@
     const rgbWorkerURL = URL.createObjectURL(rgbWorkerBlob);
     solarWorker = new Worker(rgbWorkerURL);
     solarWorker.keyPool = {};
-    const transSo = loadBuffer(solarWorker, Rso, Gso, Bso);
+    const transSo = loadBuffer(solarWorker, rgbSolarCurve);
     s2larWorker = new Worker(rgbWorkerURL);
     s2larWorker.keyPool = {};
-    const transS2 = loadBuffer(s2larWorker, Rs2, Gs2, Bs2);
+    const transS2 = loadBuffer(s2larWorker, rgbS2larCurve);
     URL.revokeObjectURL(rgbWorkerURL);
     loadBufferPromise = Promise.all([transSo, transS2]);
   } catch (e) {
@@ -163,10 +185,10 @@
       const rgbWorkerDataURI = `data:application/javascript,${encodeURIComponent(rgbWorkerScript)}`;
       solarWorker = new Worker(rgbWorkerDataURI);
       solarWorker.keyPool = {};
-      const transSo = loadBuffer(solarWorker, Rso, Gso, Bso);
+      const transSo = loadBuffer(solarWorker, rgbSolarCurve);
       s2larWorker = new Worker(rgbWorkerDataURI);
       s2larWorker.keyPool = {};
-      const transS2 = loadBuffer(s2larWorker, Rs2, Gs2, Bs2);
+      const transS2 = loadBuffer(s2larWorker, rgbS2larCurve);
       loadBufferPromise = Promise.all([transSo, transS2]);
     } catch (e) {
       diffWorker = null;
@@ -178,15 +200,6 @@
   // Virtual DOM for selection without fetching images
   function $$(htmlString) {
     return $(htmlString, document.implementation.createHTMLDocument('virtual'));
-  }
-  // Convert text to SVG image
-  function text2SVGDataURL(text, width, height = 20) {
-    return `data:image/svg+xml,${
-      encodeURIComponent(
-        `<svg xmlns='http://www.w3.org/2000/svg' height="${height}" width="${width}">` +
-        `<text x="0" y="15" fill="white" font-family="sans serif">${text}</text>` +
-        `</svg>`
-      )}`;
   }
   // Function to make an <canvas/> element
   function makeCanvas(outlineColor = 'red') {
@@ -473,6 +486,7 @@
       const resolveOriginal = (src, onprogress, resolve) => {
         GM_getImageData(src, onprogress).then((originalImageData) => {
           resolve(originalImageData);
+          originalCanvas.src = src;
           originalCanvas.width = originalImageData.width;
           originalCanvas.height = originalImageData.height;
           originalContext.putImageData(originalImageData, 0, 0);
@@ -689,7 +703,7 @@
   /*--- UI Response Functions ---*/
   // Function to acquire active image
   function getActive($overlay) {
-    return $overlay.find('img:visible,canvas:visible');
+    return $overlay.find('canvas:visible');
   }
   // Function fired when compare button is activated
   function activateCompare($target) {
@@ -718,6 +732,7 @@
     let colors = ['red', 'blue'];
     let step = 1, baseImage;
     let ftType = 'none';
+    let fadingTime = 300;
     // Mouse enter event
     $images.on('mouseenter.compare', (e, triggeredShiftKey) => {
       const target = e.currentTarget;
@@ -758,7 +773,190 @@
       }, 200);
     });
 
-    // Scroll event
+    // KeyBoard functions
+    function setBaseImage() {
+      try {
+        baseImage = getActive($overlay)[0].targetImage;
+      } catch (err) {
+        baseImage = undefined;
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function downloadImage(name = 'easycompare.png') {
+      try {
+        const target = getActive($overlay)[0];
+        const url = target.src || target.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+        GM_download({
+          url: url,
+          name: name
+        });
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function toggleFilter(filter) {
+      ftType = (ftType === filter ? 'none' : filter);
+      try {
+        const target = getActive($overlay).hide()[0];
+        let $displayImage;
+        if (ftType === 'none') {
+          $displayImage = $(getOriginalImage(target.targetImage, $overlay));
+        } else {
+          $displayImage = $(getFilteredImage(target.targetImage, ftType, $overlay));
+        }
+        $displayImage
+          .css('outline-color', target.style['outline-color'])
+          .show();
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function adjustView(up) {
+      try {
+        if (up && scale < 1.95) {
+          scale = scale + 0.1;
+        } else if (!up && scale > 0.15) {
+          scale = scale - 0.1;
+        }
+        const target = getActive($overlay)[0];
+        if (target.ready) {
+          target.style.width = `${scale * 100}%`;
+        }
+        $message.text(`Zoom: ${parseInt(scale * 100)}%`).css('opacity', '1');
+        setTimeout(() => {
+          $message.css('opacity', '0');
+        }, fadingTime);
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function restoreView() {
+      try {
+        if (scale !== 1) {
+          scale = 1;
+          const target = getActive($overlay)[0];
+          if (target.ready) {
+            target.style.width = `${scale * 100}%`;
+          }
+          $message.text(`Zoom: 100%`).css('opacity', '1');
+          setTimeout(() => {
+            $message.css('opacity', '0');
+          }, fadingTime);
+        }
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function adjustThreshold(up) {
+      try {
+        const target = getActive($overlay)[0];
+        let threshold = target.threshold;
+        if (threshold !== undefined && threshold >= 0) {
+          const thresholdPrev = threshold;
+          $message.text(`Threshold: ${thresholdPrev.toFixed(4)}`).css('opacity', '1');
+          if (up) {
+            threshold += target.step;
+            if (threshold > 1) {
+              threshold = 1;
+            }
+          } else {
+            threshold -= target.step;
+            if (threshold < 0) {
+              threshold = 0;
+            }
+          }
+          target.threshold = -1;
+          const [
+            baseCanvas,
+            targetCanvas
+          ] = [
+              target.baseImage.easyCompare.originalImage,
+              target.targetImage.easyCompare.originalImage
+            ];
+          diffImage(
+            baseCanvas.getContext('2d').getImageData(0, 0, baseCanvas.width, baseCanvas.height),
+            targetCanvas.getContext('2d').getImageData(0, 0, targetCanvas.width, targetCanvas.height),
+            {
+              alpha: 0.5,
+              threshold: threshold
+            }
+          ).then((imageData) => {
+            target.getContext('2d').putImageData(imageData, 0, 0);
+            $message.text(`Threshold: ${threshold.toFixed(4)}`).css('opacity', '1');
+            setTimeout(() => {
+              target.threshold = threshold;
+              $message.css('opacity', '0');
+            }, fadingTime);
+          });
+        }
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function adjustStep(left) {
+      try {
+        const target = getActive($overlay)[0];
+        let step = target.step;
+        if (step) {
+          if (left && step <= 0.1) {
+            target.step = step * 10;
+          } else if (left) {
+            target.step = 1.0
+          } else if (!left && step >= 0.001) {
+            target.step = step / 10;
+          } else {
+            target.step = 0.0001;
+          }
+          $message.text(`Step: ${target.step.toFixed(4)}`).css('opacity', '1');
+          setTimeout(() => $message.css('opacity', '0'), fadingTime);
+        }
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+    function clearCache() {
+      try {
+        leaveImage($overlay, getActive($overlay)[0].targetImage);
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+      $overlay.find('canvas').toArray().forEach(e => {
+        const target = e.targetImage;
+        delete target.easyCompare;
+        e.parentElement.remove();
+      });
+    }
+    function switchImage(left, shiftKey) {
+      try {
+        const targetImage = getActive($overlay)[0].targetImage;
+        const index = $images.index(targetImage);
+        leaveImage($overlay, targetImage);
+        const nextElem = $images[left ? index - step : index + step] || $images[index];
+        $(nextElem).trigger('mouseenter', [shiftKey]);
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          console.warn(err);
+        }
+      }
+    }
+
+    // Scroll and Keyboard event
     $(document).on('scroll.compare', (e) => {
       const temp = getActive($overlay)[0];
       if (temp) {
@@ -776,287 +974,47 @@
           exitCompare($overlay, $images);
           break;
         case 'Shift':
-          try {
-            const index = $images.index(getActive($overlay)[0].targetImage);
-            baseImage = $images[index];
-          } catch (err) {
-            baseImage = undefined;
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
+          setBaseImage();
           break;
         case '+': case '=':
           if (e.ctrlKey) {
-            try {
-              if (scale <= 0.9) {
-                scale = scale + 0.1;
-              } else {
-                scale = 1;
-              }
-              const target = getActive($overlay)[0];
-              if (target.ready) {
-                target.style.width = `${scale * 100}%`;
-              }
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
+            adjustView(true);
           }
           break;
         case '-': case '_':
           if (e.ctrlKey) {
-            try {
-              if (scale >= 0.2) {
-                scale = scale - 0.1;
-              } else {
-                scale = 0.1;
-              }
-              const target = getActive($overlay)[0];
-              if (target.ready) {
-                target.style.width = `${scale * 100}%`;
-              }
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
+            adjustView(false);
           }
           break;
         case 'O': case 'o':
           if (e.ctrlKey) {
-            try {
-              if (scale !== 1) {
-                scale = 1;
-                const target = getActive($overlay)[0];
-                if (target.ready) {
-                  target.style.width = `${scale * 100}%`;
-                }
-              }
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
+            restoreView();
           }
           break;
         case 'S': case 's':
           if (e.ctrlKey) {
-            try {
-              const target = getActive($overlay)[0];
-              const url = target
-                .toDataURL('image/png')
-                .replace(/^data:image\/[^;]/, 'data:application/octet-stream');
-              GM_download({
-                url: url,
-                name: 'easycompare.png'
-              });
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
+            downloadImage();
           } else {
-            ftType = (ftType === 'solar' ? 'none' : 'solar');
-            try {
-              const target = getActive($overlay).hide()[0];
-              let $displayImage;
-              if (ftType === 'none') {
-                $displayImage = $(getOriginalImage(target.targetImage, $overlay));
-              } else {
-                $displayImage = $(getFilteredImage(target.targetImage, ftType, $overlay));
-              }
-              $displayImage
-                .css('outline-color', target.style['outline-color'])
-                .show();
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
+            toggleFilter('solar');
           }
           break;
         case 'A': case 'a':
-          ftType = (ftType === 's2lar' ? 'none' : 's2lar');
-          try {
-            const target = getActive($overlay).hide()[0];
-            let $displayImage;
-            if (ftType === 'none') {
-              $displayImage = $(getOriginalImage(target.targetImage, $overlay));
-            } else {
-              $displayImage = $(getFilteredImage(target.targetImage, ftType, $overlay));
-            }
-            $displayImage
-              .css('outline-color', target.style['outline-color'])
-              .show();
-          } catch (err) {
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
+          toggleFilter('s2lar');
           break;
         case 'I': case 'i': case 'ArrowUp':
-          try {
-            const target = getActive($overlay)[0];
-            let threshold = target.threshold;
-            if (threshold !== undefined && threshold >= 0) {
-              const thresholdPrev = threshold;
-              $message.text(`Threshold: ${thresholdPrev.toFixed(4)}`).css('opacity', '1');
-              threshold += target.step;
-              if (threshold > 1) {
-                threshold = 1;
-              }
-              target.threshold = -1;
-              diffImage(
-                target
-                  .baseImage
-                  .easyCompare
-                  .originalImage
-                  .getContext('2d')
-                  .getImageData(),
-                target
-                  .targetImage
-                  .easyCompare
-                  .originalImage
-                  .getContext('2d')
-                  .getImageData(),
-                () => { },
-                {
-                  alpha: 0.5,
-                  threshold: threshold
-                }
-              ).then((imageData) => {
-                target.getContext('2d').putImageData(imageData, 0, 0);
-                $message.text(`Threshold: ${threshold.toFixed(4)}`).css('opacity', '1');
-                setTimeout(() => {
-                  target.threshold = threshold;
-                  $message.css('opacity', '0');
-                }, 300);
-              });
-            }
-          } catch (err) {
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
+          adjustThreshold(true);
           break;
         case 'K': case 'k': case 'ArrowDown':
-          try {
-            const target = getActive($overlay)[0];
-            let threshold = target.threshold;
-            if (threshold !== undefined && threshold >= 0) {
-              const thresholdPrev = threshold;
-              $message.text(`Threshold: ${thresholdPrev.toFixed(4)}`).css('opacity', '1');
-              threshold -= target.step;
-              if (threshold < 0) {
-                threshold = 0;
-              }
-              target.threshold = -1;
-              diffImage(
-                target
-                  .baseImage
-                  .easyCompare
-                  .originalImage
-                  .getContext('2d')
-                  .getImageData(),
-                target
-                  .targetImage
-                  .easyCompare
-                  .originalImage
-                  .getContext('2d')
-                  .getImageData(),
-                () => { },
-                {
-                  alpha: 0.5,
-                  threshold: threshold
-                }
-              ).then((imageData) => {
-                target.getContext('2d').putImageData(imageData, 0, 0);
-                $message.text(`Threshold: ${threshold.toFixed(4)}`).css('opacity', '1');
-                setTimeout(() => {
-                  target.threshold = threshold;
-                  $message.css('opacity', '0');
-                }, 300);
-              });
-            }
-          } catch (err) {
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
+          adjustThreshold(false);
           break;
         case 'J': case 'j': case 'ArrowLeft':
-          try {
-            const target = getActive($overlay)[0];
-            switch (target.step) {
-              case 0.0001:
-                target.step = 0.001;
-                break;
-              case 0.001:
-                target.step = 0.01;
-                break;
-              case 0.01:
-                target.step = 0.1;
-                break;
-              case 0.1:
-                target.step = 1.0;
-                break;
-              default:
-                break;
-            }
-            if (target.step) {
-              $message.text(`Step: ${target.step.toFixed(4)}`).css('opacity', '1');
-              setTimeout(() => $message.css('opacity', '0'), 300);
-            }
-          } catch (err) {
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
+          adjustStep(true);
           break;
         case 'L': case 'l': case 'ArrowRight':
           if (e.ctrlKey) {
-            try {
-              leaveImage($overlay, getActive($overlay)[0].targetImage);
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
-            $overlay.find('img,canvas').toArray().forEach(e => {
-              const target = e.targetImage;
-              delete target.easyCompare;
-              e.parentElement.remove();
-            });
+            clearCache();
           } else {
-            try {
-              const target = getActive($overlay)[0];
-              switch (target.step) {
-                case 1.0:
-                  target.step = 0.1;
-                  break;
-                case 0.1:
-                  target.step = 0.01;
-                  break;
-                case 0.01:
-                  target.step = 0.001;
-                  break;
-                case 0.001:
-                  target.step = 0.0001;
-                  break;
-                default:
-                  break;
-              }
-              if (target.step) {
-                $message.text(`Step: ${target.step.toFixed(4)}`).css('opacity', '1');
-                setTimeout(() => $message.css('opacity', '0'), 300);
-              }
-            } catch (err) {
-              if (!(err instanceof TypeError)) {
-                console.warn(err);
-              }
-            }
+            adjustStep(false);
           }
           break;
         case 'Q':
@@ -1069,31 +1027,11 @@
         case '0':
           step = 10;
           break;
-        case 'E': case 'e':
-          try {
-            const targetImage = getActive($overlay)[0].targetImage;
-            const index = $images.index(targetImage);
-            leaveImage($overlay, targetImage);
-            const nextElem = $images[index + step] || $images[index];
-            $(nextElem).trigger('mouseenter', [e.shiftKey]);
-          } catch (err) {
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
-          break;
         case 'W': case 'w':
-          try {
-            const targetImage = getActive($overlay)[0].targetImage;
-            const index = $images.index(targetImage);
-            leaveImage($overlay, targetImage);
-            const nextElem = $images[index - step] || $images[index];
-            $(nextElem).trigger('mouseenter', [e.shiftKey]);
-          } catch (err) {
-            if (!(err instanceof TypeError)) {
-              console.warn(err);
-            }
-          }
+          switchImage(true, e.shiftKey);
+          break;
+        case 'E': case 'e':
+          switchImage(false, e.shiftKey);
           break;
       }
       return false;
