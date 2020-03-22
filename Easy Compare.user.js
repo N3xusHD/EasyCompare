@@ -106,8 +106,8 @@
   ];
   // Filter function mapping
   const filterImage = {
-    'solar': (src, onprogress) => rgbImage(src, onprogress, solarWorker || [Rso, Gso, Bso]),
-    's2lar': (src, onprogress) => rgbImage(src, onprogress, s2larWorker || [Rs2, Gs2, Bs2])
+    'solar': img => rgbImage(img, solarWorker || [Rso, Gso, Bso]),
+    's2lar': img => rgbImage(img, s2larWorker || [Rs2, Gs2, Bs2])
   };
 
   /*--- Workers Initialization ---*/
@@ -187,26 +187,6 @@
         `<text x="0" y="15" fill="white" font-family="sans serif">${text}</text>` +
         `</svg>`
       )}`;
-  }
-  // Function to make an <img/> element
-  function makeImage(src, outlineColor = 'red') {
-    const $figure = $('<figure/>').css({
-      'width': 'fit-content',
-      'position': 'fixed',
-      'top': '50%',
-      'left': '50%',
-      'margin': '0',
-      'vertical-align': 'middle'
-    });
-    const $image = $(`<img src="${src}"/>`).css({
-      'display': 'none',
-      'transform': 'translate(-50%, -50%)',
-      'opacity': '1',
-      'outline': '3px solid ' + outlineColor,
-      'outline-offset': '2px',
-    });
-    $figure.append($image);
-    return $image;
   }
   // Function to make an <canvas/> element
   function makeCanvas(outlineColor = 'red') {
@@ -351,17 +331,12 @@
 
   /*--- Diff and Filter Core Function ---*/
   // Diff images
-  async function diffImage(src1, src2, onprogress, init = { alpha: 0.5, threshold: 0.007 }, worker = diffWorker) {
-    const [img1, img2] = await Promise.all([
-      GM_getImageData(src1, (p) => onprogress(p, 0)),
-      GM_getImageData(src2, (p) => onprogress(p, 1))
-    ]);
+  async function diffImage(img1, img2, init = { alpha: 0.5, threshold: 0.007 }, worker = diffWorker) {
     if (
       img1 && img2 &&
       img1.width === img2.width &&
       img1.height === img2.height
     ) {
-      onprogress(null, null);
       if (worker) {// async diff
         const [
           raw1,
@@ -421,10 +396,8 @@
     }
   }
   // RGB channel remap filter image
-  async function rgbImage(src, onprogress, argument) {
-    const img = await GM_getImageData(src, onprogress);
+  async function rgbImage(img, argument) {
     if (img) {
-      onprogress(null);
       if (argument instanceof Worker) {
         const worker = argument;
         const [raw, width, height] = [img.data.buffer, img.width, img.height];
@@ -497,15 +470,14 @@
           originalContext.fillText('Loading...', 0, 15);
         }
       };
-      const resolveOriginal = (src, resolve) => {
-        GM_getImageData(src, updateProgress).then((originalImageData) => {
-          originalCanvas.src = src;
+      const resolveOriginal = (src, onprogress, resolve) => {
+        GM_getImageData(src, onprogress).then((originalImageData) => {
+          resolve(originalImageData);
           originalCanvas.width = originalImageData.width;
           originalCanvas.height = originalImageData.height;
           originalContext.putImageData(originalImageData, 0, 0);
           originalCanvas.style.width = `${scale * 100}%`;
           originalCanvas.ready = true;
-          resolve(originalCanvas);
         });
       };
       originalCanvas.width = 80;
@@ -520,13 +492,13 @@
         target.easyCompare = {};
       }
       target.easyCompare.originalImage = originalCanvas;
-      target.easyCompare.originalImagePromise = new Promise(async (resolve) => {
+      target.easyCompare.originalImagePromise = onprogress => new Promise(async (resolve) => {
         let realSrc = target.src;
         // Parse original src from thumb src
         for (let pairs of t2oLib) {
           realSrc = realSrc.replace(pairs[0], pairs[1]);
           if (realSrc !== target.src) {
-            resolveOriginal(realSrc, resolve);
+            resolveOriginal(realSrc, onprogress, resolve);
             return;
           }
         }
@@ -540,19 +512,20 @@
             }
           }
           if (href.match(/\.png$|\.jpe?g$|\.webp|\.gif|\.bmp|\.svg$/)) {
-            resolveOriginal(href, resolve);
+            resolveOriginal(href, onprogress, resolve);
             return;
           } else {
             guessOriginalImage(href).then(src => {
-              resolveOriginal(src || realSrc, resolve);
+              resolveOriginal(src || realSrc, onprogress, resolve);
               return;
             });
           }
         } else {
-          resolveOriginal(realSrc, resolve);
+          resolveOriginal(realSrc, onprogress, resolve);
           return;
         }
       });
+      target.easyCompare.originalImagePromise(updateProgress);
       return originalCanvas;
     }
   }
@@ -620,12 +593,15 @@
       getOriginalImage(target, $overlay);
       getOriginalImage(base, $overlay);
       Promise.all([
-        target.easyCompare.originalImagePromise,
-        base.easyCompare.originalImagePromise
-      ]).then(([{ src: src1 }, { src: src2 }]) => diffImage(src1, src2, updateProgress, {
-        alpha: 0.5,
-        threshold: 0.007
-      })).then((diffedImageData) => {
+        target.easyCompare.originalImagePromise((p) => updateProgress(p, 0)),
+        base.easyCompare.originalImagePromise((p) => updateProgress(p, 1))
+      ]).then(imageData => {
+        updateProgress(null, null);
+        return diffImage(...imageData, {
+          alpha: 0.5,
+          threshold: 0.007
+        });
+      }).then((diffedImageData) => {
         if (diffedImageData === null) {
           diffedCanvas.width = 120;
           diffedContext.font = '16px sans serif';
@@ -695,15 +671,17 @@
       };
       // Wait original image and filter the original image
       getOriginalImage(target, $overlay);
-      target.easyCompare.originalImagePromise.then(originalImage => {
-        filterImage[ftType](originalImage.src, updateProgress).then(filterdImageData => {
+      target.easyCompare
+        .originalImagePromise(updateProgress).then((imageData) => {
+          updateProgress(null);
+          return filterImage[ftType](imageData);
+        }).then(filterdImageData => {
           filteredCanvas.width = filterdImageData.width;
           filteredCanvas.height = filterdImageData.height;
           filteredContext.putImageData(filterdImageData, 0, 0);
           filteredCanvas.style.width = `${scale * 100}%`;
           filteredCanvas.ready = true;
         });
-      });
       return filteredCanvas;
     }
   }
@@ -867,17 +845,9 @@
           if (e.ctrlKey) {
             try {
               const target = getActive($overlay)[0];
-              let url;
-              switch (target.nodeName) {
-                case 'IMG':
-                  url = target.src;
-                  break;
-                case 'CANVAS':
-                  url = target
-                    .toDataURL('image/png')
-                    .replace(/^data:image\/[^;]/, 'data:application/octet-stream');
-                  break;
-              }
+              const url = target
+                .toDataURL('image/png')
+                .replace(/^data:image\/[^;]/, 'data:application/octet-stream');
               GM_download({
                 url: url,
                 name: 'easycompare.png'
@@ -939,8 +909,18 @@
               }
               target.threshold = -1;
               diffImage(
-                target.baseImage.easyCompare.originalImage.src,
-                target.targetImage.easyCompare.originalImage.src,
+                target
+                  .baseImage
+                  .easyCompare
+                  .originalImage
+                  .getContext('2d')
+                  .getImageData(),
+                target
+                  .targetImage
+                  .easyCompare
+                  .originalImage
+                  .getContext('2d')
+                  .getImageData(),
                 () => { },
                 {
                   alpha: 0.5,
@@ -974,8 +954,18 @@
               }
               target.threshold = -1;
               diffImage(
-                target.baseImage.easyCompare.originalImage.src,
-                target.targetImage.easyCompare.originalImage.src,
+                target
+                  .baseImage
+                  .easyCompare
+                  .originalImage
+                  .getContext('2d')
+                  .getImageData(),
+                target
+                  .targetImage
+                  .easyCompare
+                  .originalImage
+                  .getContext('2d')
+                  .getImageData(),
                 () => { },
                 {
                   alpha: 0.5,
