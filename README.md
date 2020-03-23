@@ -1,12 +1,12 @@
 # Easy Compare
 
-## 介绍 Introduction
+## :book: 介绍 Introduction
 
 一个作用于任何页面的、用于方便地比较截图的用户脚本。多用于各大 PT 站点的对比截图比较，灵感来自于 PTP 的截图比较脚本，但源码完全不同。
 
 > **Easy Compare** is a userscript, that applied to any page, aiming to make screenshot comparison handy. This can be widely used in many PT sites. The idea comes from the official **PTP Show comparison** script, but the code is completely original.
 
-## 特性 Features
+## :balloon: 特性 Features
 
 - 在任何页面，将鼠标移动到页面右上角，找到触发的按钮（灰色），等待按钮图标变绿后，点击，即可激活比较模式；
   
@@ -66,7 +66,7 @@
   |   `Ctrl + -/_`   | 缩小图像                                                           | Zoom out                                                                           |
   |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                                 | Resize to the original size                                                        |
 
-## 待办 TODOs
+## :dart: 待办 TODOs
 
 - [x] 支持更多图床，持续更新；
 
@@ -88,7 +88,7 @@
 
   > Accelerate using WebGL.
 
-## 演示 Demo
+## :roller_coaster: 演示 Demo
 
 | 功能 Feature |                                            演示 Demo                                             |
 | :----------: | :----------------------------------------------------------------------------------------------: |
@@ -96,7 +96,7 @@
 |  Image Diff  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo2.gif) |
 | Solar Curve  | ![Demo](https://raw.githubusercontent.com/Sec-ant/Easy-Compare/master/assets/demo/gif/demo3.gif) |
 
-## 安装 Installation
+## :hammer_and_wrench: 安装 Installation
 
 请到 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/397200-easy-compare) 页面，配合 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展安装使用。
 
@@ -141,21 +141,21 @@
   > ]
   > ```
 
-## 贡献 Contribution
+## :building_construction: 贡献 Contribution
 
 本脚本暂时不开放多人编辑权限，如有问题和想法请先到 [Greasy Fork 反馈页面](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback)或 [Github Issues 页面](https://github.com/Sec-ant/Easy-Compare/issues)提交。
 
 > The script is not open for contribution for now. Please refer to the [Greasy Fork feedback page](https://greasyfork.org/zh-CN/scripts/397200-easy-compare/feedback) or [Github Issues](https://github.com/Sec-ant/Easy-Compare/issues) in case of any problems or suggestions.
 
-## 许可 License
+## :copyright: 许可 License
 
 [GNU General Public License v3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html)
 
-## 邮箱 Email
+## :mailbox: 邮箱 Email
 
 zzwu@zju.edu.cn
 
-## 捐赠 Donation
+## :heart: 捐赠 Donation
 
 <table><tbody><tr><td>支付宝 Alipay</td><td>微信 Wechat</td></tr>
 <tr><td><img width="200" src="https://i.loli.net/2020/02/28/JPGgHc3UMwXedhv.jpg"></td><td><img width="200" src="https://i.loli.net/2020/03/02/qDQ9Xk8uCHwcaLZ.png"></td></tr></tbody></table>
