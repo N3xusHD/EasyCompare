@@ -224,7 +224,7 @@
     return {
       canvas: canvas,
       context: context
-    }
+    };
   }
   // Guess original image src from view page
   function guessOriginalImage(url) {
@@ -310,7 +310,7 @@
             // Decode png binary and resolve the image data arraybuffer,
             // createImageBitmap is a multi-thread operation,
             // and won't complain about CSP img-src errors when using Image object
-            const type = (e.responseHeaders.match(/content\-type: *(.+)(\n|$)/) || [, 'image/png'])[1];
+            const type = (e.responseHeaders.match(/content\-type: *(.+)(\n|$)/) || ['', 'image/png'])[1];
             createImageBitmap(new Blob([bytes], { type: type }))
               .then((e) => {
                 const [width, height] = [e.width, e.height];
@@ -913,7 +913,7 @@
           if (left && step <= 0.1) {
             target.step = step * 10;
           } else if (left) {
-            target.step = 1.0
+            target.step = 1.0;
           } else if (!left && step >= 0.001) {
             target.step = step / 10;
           } else {
