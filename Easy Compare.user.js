@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.8.3
+// @version            0.8.4
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -219,12 +219,23 @@
       'outline-offset': '2px',
     });
     $figure.append($canvas);
-    const canvas = $canvas[0];
+    return $canvas[0];
+  }
+  // Draw text on canvas
+  function drawText(canvas, text, font = '16px sans serif', fillStyle = 'rgba(255,255,255,255)') {
     const context = canvas.getContext('2d');
-    return {
-      canvas: canvas,
-      context: context
-    };
+    context.font = font;
+    canvas.width = context.measureText(text).width;
+    canvas.height = 20;
+    context.font = font;
+    context.fillStyle = fillStyle;
+    context.fillText(text, 0, 15);
+  }
+  // Draw image on canvas
+  function drawImage(canvas, imageData) {
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    canvas.getContext('2d').putImageData(imageData, 0, 0);
   }
   // Guess original image src from view page
   function guessOriginalImage(url) {
@@ -466,39 +477,25 @@
       }
       return originalImage;
     } else {
-      const {
-        canvas: originalCanvas,
-        context: originalContext
-      } = makeCanvas();
+      const originalCanvas = makeCanvas();
       const updateProgress = (p) => {
+        let text;
         if (p !== null && p >= 0) {
-          originalCanvas.width = 120;
-          originalContext.font = '16px sans serif';
-          originalContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          originalContext.fillText(`Loading ${(p * 100).toFixed(1)}%`, 0, 15);
+          drawText(originalCanvas, `Loading ${(p * 100).toFixed(1)}%`);
         } else if (p < 0) {
-          originalCanvas.width = 80;
-          originalContext.font = '16px sans serif';
-          originalContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          originalContext.fillText('Loading...', 0, 15);
+          drawText(originalCanvas, `Loading...`);
         }
       };
       const resolveOriginal = (src, onprogress, resolve) => {
         GM_getImageData(src, onprogress).then((originalImageData) => {
           resolve(originalImageData);
           originalCanvas.src = src;
-          originalCanvas.width = originalImageData.width;
-          originalCanvas.height = originalImageData.height;
-          originalContext.putImageData(originalImageData, 0, 0);
+          drawImage(originalCanvas, originalImageData);
           originalCanvas.style.width = `${scale * 100}%`;
           originalCanvas.ready = true;
         });
       };
-      originalCanvas.width = 80;
-      originalCanvas.height = 20;
-      originalContext.font = '16px sans serif';
-      originalContext.fillStyle = 'rgba(255, 255, 255, 255)';
-      originalContext.fillText('Loading...', 0, 15);
+      drawText(originalCanvas, `Loading...`);
       originalCanvas.ready = false;
       originalCanvas.targetImage = target;
       $overlay.append(originalCanvas.parentElement);
@@ -557,15 +554,8 @@
       }
       return diffedCanvas;
     } else {
-      const {
-        canvas: diffedCanvas,
-        context: diffedContext
-      } = makeCanvas();
-      diffedCanvas.width = 80;
-      diffedCanvas.height = 20;
-      diffedContext.font = '16px sans serif';
-      diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
-      diffedContext.fillText('Loading...', 0, 15);
+      const diffedCanvas = makeCanvas();
+      drawText(diffedCanvas, 'Loading...');
       diffedCanvas.ready = false;
       diffedCanvas.targetImage = target;
       diffedCanvas.baseImage = base;
@@ -586,22 +576,13 @@
       const updateProgress = (p, ind) => {
         if (p !== null && p >= 0 && ind !== null) {
           progress[ind] = p;
-          diffedCanvas.width = 120;
-          diffedContext.font = '16px sans serif';
-          diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          diffedContext.fillText(`Loading ${((progress[0] + progress[1]) * 50).toFixed(1)}%`, 0, 15);
+          drawText(diffedCanvas, `Loading ${((progress[0] + progress[1]) * 50).toFixed(1)}%`);
         }
         else if (p < 0) {
-          diffedCanvas.width = 80;
-          diffedContext.font = '16px sans serif';
-          diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          diffedContext.fillText('Loading...', 0, 15);
+          drawText(diffedCanvas, 'Loading...');
         }
         else {
-          diffedCanvas.width = 80;
-          diffedContext.font = '16px sans serif';
-          diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          diffedContext.fillText('Diffing...', 0, 15);
+          drawText(diffedCanvas, 'Diffing...');
         }
       };
       getOriginalImage(target, $overlay);
@@ -617,24 +598,16 @@
         });
       }).then((diffedImageData) => {
         if (diffedImageData === null) {
-          diffedCanvas.width = 120;
-          diffedContext.font = '16px sans serif';
-          diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          diffedContext.fillText('Sizes Not Match', 0, 15);
+          drawText(diffedCanvas, 'Sizes Not Match');
         } else {
-          diffedCanvas.width = diffedImageData.width;
-          diffedCanvas.height = diffedImageData.height;
-          diffedContext.putImageData(diffedImageData, 0, 0);
+          drawImage(diffedCanvas, diffedImageData);
           diffedCanvas.threshold = 0.007;
           diffedCanvas.style.width = `${scale * 100}%`;
           diffedCanvas.ready = true;
         }
       }).catch((err) => {
         console.warn(err);
-        diffedCanvas.width = 120;
-        diffedContext.font = '16px sans serif';
-        diffedContext.fillStyle = 'rgba(255, 255, 255, 255)';
-        diffedContext.fillText('Sth. Went Wrong', 0, 15);
+        drawText(diffedCanvas, 'Something Went Wrong');
       });
       return diffedCanvas;
     }
@@ -648,15 +621,8 @@
       }
       return filteredCanvas;
     } else {
-      const {
-        canvas: filteredCanvas,
-        context: filteredContext
-      } = makeCanvas();
-      filteredCanvas.width = 80;
-      filteredCanvas.height = 20;
-      filteredContext.font = '16px sans serif';
-      filteredContext.fillStyle = 'rgba(255, 255, 255, 255)';
-      filteredContext.fillText('Loading...', 0, 15);
+      const filteredCanvas = makeCanvas();
+      drawText(filteredCanvas, 'Loading...');
       filteredCanvas.ready = false;
       filteredCanvas.targetImage = target;
       $overlay.append(filteredCanvas.parentElement);
@@ -667,20 +633,11 @@
       // Progress Update Function
       const updateProgress = (p) => {
         if (p !== null && p >= 0) {
-          filteredCanvas.width = 120;
-          filteredContext.font = '16px sans serif';
-          filteredContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          filteredContext.fillText(`Loading ${(p * 100).toFixed(1)}%`, 0, 15);
+          drawText(filteredCanvas, `Loading ${(p * 100).toFixed(1)}%`);
         } else if (p < 0) {
-          filteredCanvas.width = 80;
-          filteredContext.font = '16px sans serif';
-          filteredContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          filteredContext.fillText('Loading...', 0, 15);
+          drawText(filteredCanvas, 'Loading...');
         } else {
-          filteredCanvas.width = 80;
-          filteredContext.font = '16px sans serif';
-          filteredContext.fillStyle = 'rgba(255, 255, 255, 255)';
-          filteredContext.fillText('Filtering...', 0, 15);
+          drawText(filteredCanvas, 'Filtering...');
         }
       };
       // Wait original image and filter the original image
@@ -690,9 +647,7 @@
           updateProgress(null);
           return filterImage[ftType](imageData);
         }).then(filterdImageData => {
-          filteredCanvas.width = filterdImageData.width;
-          filteredCanvas.height = filterdImageData.height;
-          filteredContext.putImageData(filterdImageData, 0, 0);
+          drawImage(filteredCanvas, filterdImageData);
           filteredCanvas.style.width = `${scale * 100}%`;
           filteredCanvas.ready = true;
         });
