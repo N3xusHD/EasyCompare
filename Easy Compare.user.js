@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.8.4
+// @version            0.8.5
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -321,7 +321,49 @@
             // Decode png binary and resolve the image data arraybuffer,
             // createImageBitmap is a multi-thread operation,
             // and won't complain about CSP img-src errors when using Image object
-            const type = (e.responseHeaders.match(/content\-type: *(.+)(\n|$)/) || ['', 'image/png'])[1];
+            const type = (e.responseHeaders.match(/content\-type: *(.+)$/m) || ['', 'image/png'])[1];
+            let ext;
+            switch (type) {
+              case 'image/apng':
+                ext = '.apng';
+                break;
+              case 'image/bmp':
+                ext = '.bmp';
+                break;
+              case 'image/gif':
+                ext = '.gif';
+                break;
+              case 'image/x-icon':
+                ext = '.ico';
+                break;
+              case 'image/jpeg':
+                ext = '.jpg';
+                break;
+              case 'image/png':
+                ext = '.png';
+                break;
+              case 'image/svg+xml':
+                ext = '.svg';
+                break;
+              case 'image/tiff':
+                ext = '.tiff';
+                break;
+              case 'image/webp':
+                ext = '.webp';
+                break;
+              default:
+                if (type.slice(0, 5) === 'image') {
+                  let temp = type.match(/\/(.*)/);
+                  if (temp) {
+                    ext = '.' + temp;
+                  } else {
+                    ext = '';
+                  }
+                } else {
+                  ext = (src.match(/\.[^\.]+$/) || [''])[0];
+                }
+                break;
+            }
             createImageBitmap(new Blob([bytes], { type: type }))
               .then((e) => {
                 const [width, height] = [e.width, e.height];
@@ -331,13 +373,14 @@
                 const context = canvas.getContext('2d');
                 context.drawImage(e, 0, 0);
                 e.close();
-                resolve(
-                  new ImageData(
+                resolve({
+                  imageData: new ImageData(
                     context.getImageData(0, 0, width, height).data,
                     width,
                     height
-                  )
-                );
+                  ),
+                  extension: ext
+                });
               });
           }
           else {
@@ -381,8 +424,8 @@
             resolve(
               new ImageData(
                 new Uint8ClampedArray(e.data.diff),
-                width,
-                height
+                e.data.width,
+                e.data.height
               )
             );
           }
@@ -433,8 +476,8 @@
             resolve(
               new ImageData(
                 new Uint8ClampedArray(e.data.filter),
-                width,
-                height
+                e.data.width,
+                e.data.height
               )
             );
           }
@@ -487,9 +530,10 @@
         }
       };
       const resolveOriginal = (src, onprogress, resolve) => {
-        GM_getImageData(src, onprogress).then((originalImageData) => {
+        GM_getImageData(src, onprogress).then(({ imageData: originalImageData, extension }) => {
           resolve(originalImageData);
           originalCanvas.src = src;
+          originalCanvas.ext = extension;
           drawImage(originalCanvas, originalImageData);
           originalCanvas.style.width = `${scale * 100}%`;
           originalCanvas.ready = true;
@@ -739,13 +783,14 @@
         }
       }
     }
-    function downloadImage(name = 'easycompare.png') {
+    function downloadImage(name = 'easycompare') {
       try {
         const target = getActive($overlay)[0];
         const url = target.src || target.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+        const ext = target.ext || '';
         GM_download({
           url: url,
-          name: name
+          name: name + ext
         });
       } catch (err) {
         if (!(err instanceof TypeError)) {
