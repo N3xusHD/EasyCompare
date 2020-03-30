@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.8.5
+// @version            0.8.6
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -10,12 +10,14 @@
 // @include            *
 // @require            https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js
 // @require            https://bundle.run/pixelmatch@5.1.0
+// @resource           PixelMatchCore https://bundle.run/pixelmatch@5.1.0
 // @namespace          https://greasyfork.org/users/152136
 // @icon               data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23008000'%3E%3Cpath id='ld' d='M20 6H10c-2.21 0-4 1.79-4 4v28c0 2.21 1.79 4 4 4h10v4h4V2h-4v4zm0 30H10l10-12v12zM38 6H28v4h10v26L28 24v18h10c2.21 0 4-1.79 4-4V10c0-2.21-1.79-4-4-4z'/%3E%3C/svg%3E
 // @grant              GM_xmlhttpRequest
 // @grant              GM_download
 // @grant              GM_getValue
 // @grant              GM_setValue
+// @grant              GM_getResourceText
 // @grant              unsafewindow
 // @connect            hdbits.org
 // @connect            awesome-hd.me
@@ -645,6 +647,7 @@
           drawText(diffedCanvas, 'Sizes Not Match');
         } else {
           drawImage(diffedCanvas, diffedImageData);
+          diffedCanvas.ext = '.png';
           diffedCanvas.threshold = 0.007;
           diffedCanvas.style.width = `${scale * 100}%`;
           diffedCanvas.ready = true;
@@ -692,6 +695,7 @@
           return filterImage[ftType](imageData);
         }).then(filterdImageData => {
           drawImage(filteredCanvas, filterdImageData);
+          filteredCanvas.ext = '.png';
           filteredCanvas.style.width = `${scale * 100}%`;
           filteredCanvas.ready = true;
         });
