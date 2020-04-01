@@ -49,7 +49,7 @@
 // ☐ other filters?
 // ☐ webgl acceleration (webgl in worker?)
 
-// jshint esversion:8
+// jshint esversion:8, -W054
 (async function ($, Mousetrap, pixelmatch, URL) {
   'use strict';
 
@@ -182,7 +182,7 @@
           key: key
         });
       }
-    }
+    };
   }
   function rgbWork(f) {
     const u = Uint8ClampedArray;
@@ -209,7 +209,7 @@
           });
         }
       }
-    }
+    };
   }
   function stringifyWork(workFun, arg) {
     return `(${workFun.toString()})(${arg})`;
@@ -1172,28 +1172,61 @@
     'fill': 'gray'
   }).css({
     'position': 'fixed',
-    'top': '15px',
-    'right': '15px',
+    'top': '0px',
+    'right': '0px',
+    'padding': '15px',
     'z-index': 2147483647,
     'paint-order': 'stroke',
     'opacity': 0,
     'transition': 'all 0.2s',
     'cursor': 'auto'
   }).on('mouseenter', (e) => {
-    $(e.currentTarget).attr({
-      'fill': 'gray'
-    }).css({
-      'opacity': 0.2
-    });
-    timeout = setTimeout(() => activateCompare($(e.currentTarget)), $overlay[0].state ? 0 : 1000);
-  }).on('mouseleave', (e) => {
-    clearTimeout(timeout);
-    $(e.currentTarget).attr({
-      'fill': 'gray'
-    }).css({
-      'cursor': 'auto',
-      'opacity': 0
-    })[0].state = false;
+    const $target = $(e.currentTarget);
+    if ($target[0].manualFlag) {
+      $target.attr({
+        'fill': 'gray'
+      }).css({
+        'opacity': 0.2,
+        'pointer-events': 'none'
+      });
+      $target[0].manualFlag = false;
+      const clientWidth = document.documentElement.clientWidth;
+      $(document).on('mousemove.compare', ({ clientX, clientY }) => {
+        if (clientX < clientWidth - 61 || clientY > 61) {
+          $target[0].insideFlag = 0;
+          clearTimeout(timeout);
+          $target.attr({
+            'fill': 'gray'
+          }).css({
+            'cursor': 'auto',
+            'opacity': 0,
+            'pointer-events': 'auto'
+          })[0].state = false;
+          $(document).off('mousemove.compare');
+          $target[0].manualFlag = true;
+        } else if (clientX >= clientWidth - 45 && clientX <= clientWidth - 15 && clientY >= 15 && clientY <= 45) {
+          if (!$target[0].insideFlag) {
+            $target[0].insideFlag = 1;
+            timeout = setTimeout(() => {
+              activateCompare($target);
+              $target.css({
+                'pointer-events': 'auto'
+              });
+            }, $overlay[0].state ? 0 : 1000);
+          }
+        } else if (clientX < clientWidth - 45 || clientX > clientWidth - 15 || clientY < 15 || clientY > 45) {
+          $target[0].insideFlag = 0;
+          clearTimeout(timeout);
+          $target.attr({
+            'fill': 'gray'
+          }).css({
+            'cursor': 'auto',
+            'opacity': 0.2,
+            'pointer-events': 'none'
+          })[0].state = false;
+        }
+      });
+    }
   }).click((e) => {
     if (e.currentTarget.state) {
       switch ($overlay[0].state) {
@@ -1226,6 +1259,8 @@
       });
     }
   });
+  $compareButton[0].manualFlag = true;
+  $compareButton[0].insideFlag = false;
 
   /*--- Insert to Document ---*/
   $overlay[0].state = false;
