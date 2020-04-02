@@ -35,20 +35,10 @@
 // @connect            tpimg.ccache.org
 // @connect            pterclub.com
 // @connect            catbox.moe
+// @connect            sm.ms
+// @connect            broadcasthe.net
 // @connect            *
 // ==/UserScript==
-
-// # TODO List
-// ☑ guess original images from hyper link
-// ☑ redirect url chopper: deferer, anonymouse
-// ☑ image diff by hold "Shift" and switch to another image: https://bundle.run/pixelmatch@5.1.0
-// ☑ solar curve filter toggled by "s": see bandings clearly
-// ☑ save current active image by "ctrl + s"
-// ☑ clear caches by "ctrl + l"
-// ☐ more sites support
-// ☐ other filters?
-// ☐ webgl acceleration (webgl in worker?)
-
 // jshint esversion:8, -W054
 (async function ($, Mousetrap, pixelmatch, URL) {
   'use strict';
@@ -79,7 +69,7 @@
   // A global timeout ID holder
   let timeout;
   // A global scale factor
-  let scale = 1;
+  let scale = 10;
   // Regex replacement array that converts thumbs to originals
   const t2oLib = [
     [/\.thumb\.jpe?g$/, ''], // nexusphp
@@ -582,7 +572,7 @@
     if (target.easyCompare && target.easyCompare.originalImage) {
       const originalImage = target.easyCompare.originalImage;
       if (originalImage.ready) {
-        originalImage.style.width = `${scale * 100}%`;
+        originalImage.style.width = `${scale * 10}%`;
       }
       return originalImage;
     } else {
@@ -601,7 +591,8 @@
           originalCanvas.src = src;
           originalCanvas.ext = extension;
           drawImage(originalCanvas, originalImageData);
-          originalCanvas.style.width = `${scale * 100}%`;
+          originalCanvas.style.width = `${scale * 10}%`;
+          originalCanvas.style['image-rendering'] = 'pixelated';
           originalCanvas.ready = true;
         });
       };
@@ -660,7 +651,7 @@
       target.easyCompare[base.src].baseImage = base;
       const diffedCanvas = target.easyCompare[base.src];
       if (diffedCanvas.ready) {
-        diffedCanvas.style.width = `${scale * 100}%`;
+        diffedCanvas.style.width = `${scale * 10}%`;
       }
       return diffedCanvas;
     } else {
@@ -713,7 +704,8 @@
           drawImage(diffedCanvas, diffedImageData);
           diffedCanvas.ext = '.png';
           diffedCanvas.threshold = 0.007;
-          diffedCanvas.style.width = `${scale * 100}%`;
+          diffedCanvas.style.width = `${scale * 10}%`;
+          diffedCanvas.style['image-rendering'] = 'pixelated';
           diffedCanvas.ready = true;
         }
       }).catch((err) => {
@@ -728,7 +720,7 @@
     if (target.easyCompare && target.easyCompare[ftType]) {
       const filteredCanvas = target.easyCompare[ftType];
       if (filteredCanvas.ready) {
-        filteredCanvas.style.width = `${scale * 100}%`;
+        filteredCanvas.style.width = `${scale * 10}%`;
       }
       return filteredCanvas;
     } else {
@@ -760,7 +752,8 @@
         }).then(filterdImageData => {
           drawImage(filteredCanvas, filterdImageData);
           filteredCanvas.ext = '.png';
-          filteredCanvas.style.width = `${scale * 100}%`;
+          filteredCanvas.style.width = `${scale * 10}%`;
+          filteredCanvas.style['image-rendering'] = 'pixelated';
           filteredCanvas.ready = true;
         });
       return filteredCanvas;
@@ -887,16 +880,20 @@
     }
     function adjustView(up) {
       try {
-        if (up && scale < 1.95) {
-          scale = scale + 0.1;
-        } else if (!up && scale > 0.15) {
-          scale = scale - 0.1;
+        if (up && scale < 10) {
+          scale = scale + 1;
+        } else if (up && scale < 30) {
+          scale = scale + 2;
+        } else if (!up && scale > 10) {
+          scale = scale - 2;
+        } else if (!up && scale > 1) {
+          scale = scale - 1;
         }
         const target = getActive($overlay)[0];
         if (target.ready) {
-          target.style.width = `${scale * 100}%`;
+          target.style.width = `${scale * 10}%`;
         }
-        $message.text(`Zoom: ${parseInt(scale * 100)}%`).css('opacity', '1');
+        $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
         setTimeout(() => {
           $message.css('opacity', '0');
         }, fadingTime);
@@ -906,15 +903,15 @@
         }
       }
     }
-    function restoreView() {
+    function setView(scl) {
       try {
-        if (scale !== 1) {
-          scale = 1;
+        if (scale !== scl) {
+          scale = scl;
           const target = getActive($overlay)[0];
           if (target.ready) {
-            target.style.width = `${scale * 100}%`;
+            target.style.width = `${scale * 10}%`;
           }
-          $message.text(`Zoom: 100%`).css('opacity', '1');
+          $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
           setTimeout(() => {
             $message.css('opacity', '0');
           }, fadingTime);
@@ -1056,7 +1053,12 @@
           break;
         case 'O': case 'o':
           if (e.ctrlKey) {
-            restoreView();
+            setView(10);
+          }
+          break;
+        case 'P': case 'p':
+          if (e.ctrlKey) {
+            setView(30);
           }
           break;
         case 'S': case 's':
@@ -1069,7 +1071,14 @@
         case 'A': case 'a':
           toggleFilter('s2lar');
           break;
-        case 'I': case 'i': case 'ArrowUp':
+        case 'I': case 'i':
+          if (e.ctrlKey) {
+            setView(1);
+          } else {
+            adjustThreshold(true);
+          }
+          break;
+        case 'ArrowUp':
           adjustThreshold(true);
           break;
         case 'K': case 'k': case 'ArrowDown':

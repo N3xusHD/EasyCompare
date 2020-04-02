@@ -64,6 +64,8 @@
   |   `Ctrl + L/l`   | 清除图像缓存                                                       | Clear image caches                                                                 |
   |   `Ctrl + =/+`   | 放大图像                                                           | Zoom in                                                                            |
   |   `Ctrl + -/_`   | 缩小图像                                                           | Zoom out                                                                           |
+  |   `Ctrl + I/i`   | 缩小图像到最小尺寸                                                 | Zoom out to the minimum size                                                       |
+  |   `Ctrl + P/p`   | 放大图像到最大尺寸                                                 | Zoom in to the maximum size                                                       |
   |   `Ctrl + O/o`   | 恢复到图像原有尺寸                                                 | Resize to the original size                                                        |
 
 ## :dart: 待办 TODOs

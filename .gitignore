@@ -1,2 +1,2 @@
 assets/demo/mp4
-*.m~
+.jshintignore
