@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.9.1
+// @version            0.9.2
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -63,6 +63,9 @@
       var self = this;
       self.paused = false;
     };
+    try {
+      Mousetrap.init();
+    } catch (_) { }
   }
 
   /*--- Global Contexts ---*/
