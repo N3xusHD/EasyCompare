@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.8.6
+// @version            0.9.0
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -35,21 +35,11 @@
 // @connect            tpimg.ccache.org
 // @connect            pterclub.com
 // @connect            catbox.moe
+// @connect            sm.ms
+// @connect            broadcasthe.net
 // @connect            *
 // ==/UserScript==
-
-// # TODO List
-// ☑ guess original images from hyper link
-// ☑ redirect url chopper: deferer, anonymouse
-// ☑ image diff by hold "Shift" and switch to another image: https://bundle.run/pixelmatch@5.1.0
-// ☑ solar curve filter toggled by "s": see bandings clearly
-// ☑ save current active image by "ctrl + s"
-// ☑ clear caches by "ctrl + l"
-// ☐ more sites support
-// ☐ other filters?
-// ☐ webgl acceleration (webgl in worker?)
-
-// jshint esversion:8
+// jshint esversion:8, -W054
 (async function ($, Mousetrap, pixelmatch, URL) {
   'use strict';
 
@@ -79,7 +69,7 @@
   // A global timeout ID holder
   let timeout;
   // A global scale factor
-  let scale = 1;
+  let scale = 10;
   // Regex replacement array that converts thumbs to originals
   const t2oLib = [
     [/\.thumb\.jpe?g$/, ''], // nexusphp
@@ -160,16 +150,72 @@
     });
   }
   // Diff, Solar, S2lar Worker Initialization
+  function diffWork(f) {
+    f.apply(self);
+    const u = Uint8ClampedArray;
+    self.onmessage = ({ data: { key, img1, img2, width, height, init } }) => {
+      img1 = new u(img1);
+      img2 = new u(img2);
+      const diff = new u(img1);
+      try {
+        self.pixelmatch(img1, img2, diff, width, height, init);
+        self.postMessage({
+          diff: diff.buffer,
+          width: width,
+          height: height,
+          key: key
+        }, [diff.buffer]);
+      } catch (err) {
+        console.warn(err);
+        self.postMessage({
+          diff: null,
+          key: key
+        });
+      }
+    };
+  }
+  function rgbWork(f) {
+    const u = Uint8ClampedArray;
+    self.onmessage = ({ data: { key, R, G, B, img, width, height } }) => {
+      if (R && G && B) {
+        self.RGB = [new u(R), new u(G), new u(B)];
+        self.postMessage({ result: true });
+      } else {
+        img = new u(img);
+        const filter = new u(img);
+        try {
+          f.apply(self, [img, filter, width, height, self.RGB]);
+          self.postMessage({
+            filter: filter.buffer,
+            width: width,
+            height: height,
+            key: key
+          }, [filter.buffer]);
+        } catch (err) {
+          console.warn(err);
+          self.postMessage({
+            filter: null,
+            key: key
+          });
+        }
+      }
+    };
+  }
+  function stringifyWork(workFun, arg) {
+    return `(${workFun.toString()})(${arg})`;
+  }
   let diffWorker, solarWorker, s2larWorker;
   let loadBufferPromise;
-  const diffWorkerScript = `const defaultOptions={threshold:.1,includeAA:!1,alpha:.1,aaColor:[255,255,0],diffColor:[255,0,0],diffMask:!1};function pixelmatch(a,b,c,d,e,f){if(!isPixelData(a)||!isPixelData(b)||c&&!isPixelData(c))throw new Error("Image data: Uint8Array, Uint8ClampedArray or Buffer expected.");if(a.length!==b.length||c&&c.length!==a.length)throw new Error("Image sizes do not match.");if(a.length!==4*(d*e))throw new Error("Image data size does not match width/height.");f=Object.assign({},defaultOptions,f);const g=d*e,h=new Uint32Array(a.buffer,a.byteOffset,g),j=new Uint32Array(b.buffer,b.byteOffset,g);let k=!0;for(let l=0;l<g;l++)if(h[l]!==j[l]){k=!1;break}if(k){if(c&&!f.diffMask)for(let b=0;b<g;b++)drawGrayPixel(a,4*b,f.alpha,c);return 0}const l=35215*f.threshold*f.threshold;let m=0;const[n,o,p]=f.aaColor,[q,r,s]=f.diffColor;for(let g=0;g<e;g++)for(let h=0;h<d;h++){const i=4*(g*d+h),j=colorDelta(a,b,i,i);j>l?!f.includeAA&&(antialiased(a,h,g,d,e,b)||antialiased(b,h,g,d,e,a))?c&&!f.diffMask&&drawPixel(c,i,n,o,p):(c&&drawPixel(c,i,q,r,s),m++):c&&!f.diffMask&&drawGrayPixel(a,i,f.alpha,c)}return m}function isPixelData(a){return ArrayBuffer.isView(a)&&1===a.constructor.BYTES_PER_ELEMENT}function antialiased(a,b,c,d,e,f){const g=Math.max(b-1,0),h=Math.max(c-1,0),i=Math.min(b+1,d-1),j=Math.min(c+1,e-1);let k,l,m,n,o=b===g||b===i||c===h||c===j?1:0,p=0,q=0;for(let r=g;r<=i;r++)for(let e=h;e<=j;e++){if(r===b&&e===c)continue;const f=colorDelta(a,a,4*(c*d+b),4*(e*d+r),!0);if(0!==f)f<p?(p=f,k=r,l=e):f>q&&(q=f,m=r,n=e);else if(o++,2<o)return!1}return 0!==p&&0!==q&&(hasManySiblings(a,k,l,d,e)&&hasManySiblings(f,k,l,d,e)||hasManySiblings(a,m,n,d,e)&&hasManySiblings(f,m,n,d,e))}function hasManySiblings(a,b,c,d,e){const f=Math.max(b-1,0),g=Math.max(c-1,0),h=Math.min(b+1,d-1),i=Math.min(c+1,e-1),j=4*(c*d+b);let k=b===f||b===h||c===g||c===i?1:0;for(let l=f;l<=h;l++)for(let e=g;e<=i;e++){if(l===b&&e===c)continue;const f=4*(e*d+l);if(a[j]===a[f]&&a[j+1]===a[f+1]&&a[j+2]===a[f+2]&&a[j+3]===a[f+3]&&k++,2<k)return!0}return!1}function colorDelta(a,b,c,d,e){let f=a[c+0],g=a[c+1],h=a[c+2],j=a[c+3],k=b[d+0],l=b[d+1],m=b[d+2],n=b[d+3];if(j===n&&f===k&&g===l&&h===m)return 0;255>j&&(j/=255,f=blend(f,j),g=blend(g,j),h=blend(h,j)),255>n&&(n/=255,k=blend(k,n),l=blend(l,n),m=blend(m,n));const o=rgb2y(f,g,h)-rgb2y(k,l,m);if(e)return o;const p=rgb2i(f,g,h)-rgb2i(k,l,m),i=rgb2q(f,g,h)-rgb2q(k,l,m);return .5053*o*o+.299*p*p+.1957*i*i}function rgb2y(a,c,d){return .29889531*a+.58662247*c+.11448223*d}function rgb2i(a,c,d){return .59597799*a-.2741761*c-.32180189*d}function rgb2q(a,c,d){return .21147017*a-.52261711*c+.31114694*d}function blend(b,c){return 255+(b-255)*c}function drawPixel(a,c,d,e,f){a[c+0]=d,a[c+1]=e,a[c+2]=f,a[c+3]=255}function drawGrayPixel(a,c,d,e){const f=a[c+0],h=a[c+1],g=a[c+2],b=blend(rgb2y(f,h,g),d*a[c+3]/255);drawPixel(e,c,b,b,b)}self.onmessage=a=>{img1=new Uint8ClampedArray(a.data.img1),img2=new Uint8ClampedArray(a.data.img2),diff=new Uint8ClampedArray(img1),width=a.data.width,height=a.data.height,init=a.data.init,key=a.data.key;try{pixelmatch(img1,img2,diff,width,height,init),self.postMessage({diff:diff.buffer,width:width,height:height,key:key},[diff.buffer])}catch(a){console.warn(a),self.postMessage({diff:null,key:key})}};`;
-  const rgbWorkerScript = `let R,G,B;self.onmessage=(e=>{const a=e.data.key;if(e.data.R&&e.data.G&&e.data.B)R=new Uint8ClampedArray(e.data.R),G=new Uint8ClampedArray(e.data.G),B=new Uint8ClampedArray(e.data.B),self.postMessage({result:!0});else{const t=new Uint8ClampedArray(e.data.img),l=new Uint8ClampedArray(t),s=e.data.width,r=e.data.height;try{for(let e=0;e<r;++e)for(let a=0;a<s;++a){let r=4*a+e*s*4;l[r]=R[t[r]],l[r+1]=G[t[r+1]],l[r+2]=B[t[r+2]],l[r+3]=t[r+3]}self.postMessage({filter:l.buffer,width:s,height:r,key:a},[l.buffer])}catch(e){console.warn(e),self.postMessage({filter:null,key:a})}}});`;
   try {
-    const diffWorkerBlob = new Blob([diffWorkerScript], { type: 'application/javascript' });
+    const diffWorkerBlob = new Blob([
+      stringifyWork(diffWork, new Function(
+        GM_getResourceText('PixelMatchCore')
+      ))
+    ], { type: 'application/javascript' });
     diffWorker = new Worker(URL.createObjectURL(diffWorkerBlob));
     diffWorker.keyPool = {};
     URL.revokeObjectURL(diffWorkerBlob);
-    const rgbWorkerBlob = new Blob([rgbWorkerScript], { type: 'application/javascript' });
+    const rgbWorkerBlob = new Blob([stringifyWork(rgbWork, rgbRemap)], { type: 'application/javascript' });
     const rgbWorkerURL = URL.createObjectURL(rgbWorkerBlob);
     solarWorker = new Worker(rgbWorkerURL);
     solarWorker.keyPool = {};
@@ -181,10 +227,18 @@
     loadBufferPromise = Promise.all([transSo, transS2]);
   } catch (e) {
     try {
-      const diffWorkerDataURI = `data:application/javascript,${encodeURIComponent(diffWorkerScript)}`;
+      const diffWorkerDataURI = `data:application/javascript,${
+        encodeURIComponent(
+          stringifyWork(diffWork, new Function(
+            GM_getResourceText('PixelMatchCore')
+          ))
+        )}`;
       diffWorker = new Worker(diffWorkerDataURI);
       diffWorker.keyPool = {};
-      const rgbWorkerDataURI = `data:application/javascript,${encodeURIComponent(rgbWorkerScript)}`;
+      const rgbWorkerDataURI = `data:application/javascript,${
+        encodeURIComponent(
+          stringifyWork(rgbWork, rgbRemap)
+        )}`;
       solarWorker = new Worker(rgbWorkerDataURI);
       solarWorker.keyPool = {};
       const transSo = loadBuffer(solarWorker, rgbSolarCurve);
@@ -518,7 +572,7 @@
     if (target.easyCompare && target.easyCompare.originalImage) {
       const originalImage = target.easyCompare.originalImage;
       if (originalImage.ready) {
-        originalImage.style.width = `${scale * 100}%`;
+        originalImage.style.width = `${scale * 10}%`;
       }
       return originalImage;
     } else {
@@ -537,7 +591,8 @@
           originalCanvas.src = src;
           originalCanvas.ext = extension;
           drawImage(originalCanvas, originalImageData);
-          originalCanvas.style.width = `${scale * 100}%`;
+          originalCanvas.style.width = `${scale * 10}%`;
+          originalCanvas.style['image-rendering'] = 'pixelated';
           originalCanvas.ready = true;
         });
       };
@@ -596,7 +651,7 @@
       target.easyCompare[base.src].baseImage = base;
       const diffedCanvas = target.easyCompare[base.src];
       if (diffedCanvas.ready) {
-        diffedCanvas.style.width = `${scale * 100}%`;
+        diffedCanvas.style.width = `${scale * 10}%`;
       }
       return diffedCanvas;
     } else {
@@ -649,7 +704,8 @@
           drawImage(diffedCanvas, diffedImageData);
           diffedCanvas.ext = '.png';
           diffedCanvas.threshold = 0.007;
-          diffedCanvas.style.width = `${scale * 100}%`;
+          diffedCanvas.style.width = `${scale * 10}%`;
+          diffedCanvas.style['image-rendering'] = 'pixelated';
           diffedCanvas.ready = true;
         }
       }).catch((err) => {
@@ -664,7 +720,7 @@
     if (target.easyCompare && target.easyCompare[ftType]) {
       const filteredCanvas = target.easyCompare[ftType];
       if (filteredCanvas.ready) {
-        filteredCanvas.style.width = `${scale * 100}%`;
+        filteredCanvas.style.width = `${scale * 10}%`;
       }
       return filteredCanvas;
     } else {
@@ -696,7 +752,8 @@
         }).then(filterdImageData => {
           drawImage(filteredCanvas, filterdImageData);
           filteredCanvas.ext = '.png';
-          filteredCanvas.style.width = `${scale * 100}%`;
+          filteredCanvas.style.width = `${scale * 10}%`;
+          filteredCanvas.style['image-rendering'] = 'pixelated';
           filteredCanvas.ready = true;
         });
       return filteredCanvas;
@@ -823,16 +880,20 @@
     }
     function adjustView(up) {
       try {
-        if (up && scale < 1.95) {
-          scale = scale + 0.1;
-        } else if (!up && scale > 0.15) {
-          scale = scale - 0.1;
+        if (up && scale < 10) {
+          scale = scale + 1;
+        } else if (up && scale < 30) {
+          scale = scale + 2;
+        } else if (!up && scale > 10) {
+          scale = scale - 2;
+        } else if (!up && scale > 1) {
+          scale = scale - 1;
         }
         const target = getActive($overlay)[0];
         if (target.ready) {
-          target.style.width = `${scale * 100}%`;
+          target.style.width = `${scale * 10}%`;
         }
-        $message.text(`Zoom: ${parseInt(scale * 100)}%`).css('opacity', '1');
+        $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
         setTimeout(() => {
           $message.css('opacity', '0');
         }, fadingTime);
@@ -842,15 +903,15 @@
         }
       }
     }
-    function restoreView() {
+    function setView(scl) {
       try {
-        if (scale !== 1) {
-          scale = 1;
+        if (scale !== scl) {
+          scale = scl;
           const target = getActive($overlay)[0];
           if (target.ready) {
-            target.style.width = `${scale * 100}%`;
+            target.style.width = `${scale * 10}%`;
           }
-          $message.text(`Zoom: 100%`).css('opacity', '1');
+          $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
           setTimeout(() => {
             $message.css('opacity', '0');
           }, fadingTime);
@@ -992,7 +1053,12 @@
           break;
         case 'O': case 'o':
           if (e.ctrlKey) {
-            restoreView();
+            setView(10);
+          }
+          break;
+        case 'P': case 'p':
+          if (e.ctrlKey) {
+            setView(30);
           }
           break;
         case 'S': case 's':
@@ -1005,7 +1071,14 @@
         case 'A': case 'a':
           toggleFilter('s2lar');
           break;
-        case 'I': case 'i': case 'ArrowUp':
+        case 'I': case 'i':
+          if (e.ctrlKey) {
+            setView(1);
+          } else {
+            adjustThreshold(true);
+          }
+          break;
+        case 'ArrowUp':
           adjustThreshold(true);
           break;
         case 'K': case 'k': case 'ArrowDown':
@@ -1108,28 +1181,61 @@
     'fill': 'gray'
   }).css({
     'position': 'fixed',
-    'top': '15px',
-    'right': '15px',
+    'top': '0px',
+    'right': '0px',
+    'padding': '15px',
     'z-index': 2147483647,
     'paint-order': 'stroke',
     'opacity': 0,
     'transition': 'all 0.2s',
     'cursor': 'auto'
   }).on('mouseenter', (e) => {
-    $(e.currentTarget).attr({
-      'fill': 'gray'
-    }).css({
-      'opacity': 0.2
-    });
-    timeout = setTimeout(() => activateCompare($(e.currentTarget)), $overlay[0].state ? 0 : 1000);
-  }).on('mouseleave', (e) => {
-    clearTimeout(timeout);
-    $(e.currentTarget).attr({
-      'fill': 'gray'
-    }).css({
-      'cursor': 'auto',
-      'opacity': 0
-    })[0].state = false;
+    const $target = $(e.currentTarget);
+    if ($target[0].manualFlag) {
+      $target.attr({
+        'fill': 'gray'
+      }).css({
+        'opacity': 0.2,
+        'pointer-events': 'none'
+      });
+      $target[0].manualFlag = false;
+      const clientWidth = document.documentElement.clientWidth;
+      $(document).on('mousemove.compare', ({ clientX, clientY }) => {
+        if (clientX < clientWidth - 61 || clientY > 61) {
+          $target[0].insideFlag = 0;
+          clearTimeout(timeout);
+          $target.attr({
+            'fill': 'gray'
+          }).css({
+            'cursor': 'auto',
+            'opacity': 0,
+            'pointer-events': 'auto'
+          })[0].state = false;
+          $(document).off('mousemove.compare');
+          $target[0].manualFlag = true;
+        } else if (clientX >= clientWidth - 45 && clientX <= clientWidth - 15 && clientY >= 15 && clientY <= 45) {
+          if (!$target[0].insideFlag) {
+            $target[0].insideFlag = 1;
+            timeout = setTimeout(() => {
+              activateCompare($target);
+              $target.css({
+                'pointer-events': 'auto'
+              });
+            }, $overlay[0].state ? 0 : 1000);
+          }
+        } else if (clientX < clientWidth - 45 || clientX > clientWidth - 15 || clientY < 15 || clientY > 45) {
+          $target[0].insideFlag = 0;
+          clearTimeout(timeout);
+          $target.attr({
+            'fill': 'gray'
+          }).css({
+            'cursor': 'auto',
+            'opacity': 0.2,
+            'pointer-events': 'none'
+          })[0].state = false;
+        }
+      });
+    }
   }).click((e) => {
     if (e.currentTarget.state) {
       switch ($overlay[0].state) {
@@ -1162,6 +1268,8 @@
       });
     }
   });
+  $compareButton[0].manualFlag = true;
+  $compareButton[0].insideFlag = false;
 
   /*--- Insert to Document ---*/
   $overlay[0].state = false;
