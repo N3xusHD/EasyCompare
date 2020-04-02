@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.9.0
+// @version            0.9.1
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -1184,6 +1184,7 @@
     'top': '0px',
     'right': '0px',
     'padding': '15px',
+    'box-sizing': 'content-box',
     'z-index': 2147483647,
     'paint-order': 'stroke',
     'opacity': 0,
