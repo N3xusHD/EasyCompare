@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.9.2
+// @version            0.9.3
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -595,7 +595,6 @@
           originalCanvas.ext = extension;
           drawImage(originalCanvas, originalImageData);
           originalCanvas.style.width = `${scale * 10}%`;
-          originalCanvas.style['image-rendering'] = 'pixelated';
           originalCanvas.ready = true;
         });
       };
@@ -708,7 +707,6 @@
           diffedCanvas.ext = '.png';
           diffedCanvas.threshold = 0.007;
           diffedCanvas.style.width = `${scale * 10}%`;
-          diffedCanvas.style['image-rendering'] = 'pixelated';
           diffedCanvas.ready = true;
         }
       }).catch((err) => {
@@ -756,7 +754,6 @@
           drawImage(filteredCanvas, filterdImageData);
           filteredCanvas.ext = '.png';
           filteredCanvas.style.width = `${scale * 10}%`;
-          filteredCanvas.style['image-rendering'] = 'pixelated';
           filteredCanvas.ready = true;
         });
       return filteredCanvas;
@@ -894,6 +891,11 @@
         }
         const target = getActive($overlay)[0];
         if (target.ready) {
+          if (scale > 10) {
+            target.style['image-rendering'] = 'pixelated';
+          } else {
+            target.style['image-rendering'] = 'auto';
+          }
           target.style.width = `${scale * 10}%`;
         }
         $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
@@ -913,6 +915,7 @@
           const target = getActive($overlay)[0];
           if (target.ready) {
             target.style.width = `${scale * 10}%`;
+            target.style['image-rendering'] = 'auto';
           }
           $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
           setTimeout(() => {
