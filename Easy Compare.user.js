@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               Easy Compare
 // @description        Compare images
-// @version            0.9.3
+// @version            0.9.4
 // @author             Secant (TYT@NexusHD)
 // @license            GPL-3.0-or-later
 // @supportURL         zzwu@zju.edu.cn
@@ -98,6 +98,7 @@
     '.image-container img',
     'div.img.big>img',
     'img.mainimage',
+    'img.main-image',
     'img#img'
   ];
   // Filter function mapping
