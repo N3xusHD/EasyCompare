@@ -9,8 +9,8 @@
 // @contributionAmount 10
 // @include            *
 // @require            https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js
-// @require            https://bundle.run/pixelmatch@5.1.0
-// @resource           PixelMatchCore https://bundle.run/pixelmatch@5.1.0
+// @require            https://greasyfork.org/scripts/401377-pixelmatch/code/pixelmatch.js
+// @resource           PixelMatchCore https://greasyfork.org/scripts/401377-pixelmatch/code/pixelmatch.js
 // @namespace          https://greasyfork.org/users/152136
 // @icon               data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23008000'%3E%3Cpath id='ld' d='M20 6H10c-2.21 0-4 1.79-4 4v28c0 2.21 1.79 4 4 4h10v4h4V2h-4v4zm0 30H10l10-12v12zM38 6H28v4h10v26L28 24v18h10c2.21 0 4-1.79 4-4V10c0-2.21-1.79-4-4-4z'/%3E%3C/svg%3E
 // @grant              GM_xmlhttpRequest
@@ -570,6 +570,14 @@
     }
   }
 
+  function reRenderImage(image, scale) {
+    if (scale > 10) {
+      image.style['image-rendering'] = 'pixelated';
+    } else {
+      image.style['image-rendering'] = 'auto';
+    }
+  }
+
   /*--- Get Images: Original, Diffed or Filtered ---*/
   // Get original image function
   function getOriginalImage(target, $overlay) {
@@ -577,12 +585,12 @@
       const originalImage = target.easyCompare.originalImage;
       if (originalImage.ready) {
         originalImage.style.width = `${scale * 10}%`;
+        reRenderImage(originalImage, scale);
       }
       return originalImage;
     } else {
       const originalCanvas = makeCanvas();
       const updateProgress = (p) => {
-        let text;
         if (p !== null && p >= 0) {
           drawText(originalCanvas, `Loading ${(p * 100).toFixed(1)}%`);
         } else if (p < 0) {
@@ -596,6 +604,7 @@
           originalCanvas.ext = extension;
           drawImage(originalCanvas, originalImageData);
           originalCanvas.style.width = `${scale * 10}%`;
+          reRenderImage(originalCanvas, scale);
           originalCanvas.ready = true;
         });
       };
@@ -655,6 +664,7 @@
       const diffedCanvas = target.easyCompare[base.src];
       if (diffedCanvas.ready) {
         diffedCanvas.style.width = `${scale * 10}%`;
+        reRenderImage(diffedCanvas, scale);
       }
       return diffedCanvas;
     } else {
@@ -708,6 +718,7 @@
           diffedCanvas.ext = '.png';
           diffedCanvas.threshold = 0.007;
           diffedCanvas.style.width = `${scale * 10}%`;
+          reRenderImage(diffedCanvas, scale);
           diffedCanvas.ready = true;
         }
       }).catch((err) => {
@@ -723,6 +734,7 @@
       const filteredCanvas = target.easyCompare[ftType];
       if (filteredCanvas.ready) {
         filteredCanvas.style.width = `${scale * 10}%`;
+        reRenderImage(filteredCanvas, scale);
       }
       return filteredCanvas;
     } else {
@@ -755,6 +767,7 @@
           drawImage(filteredCanvas, filterdImageData);
           filteredCanvas.ext = '.png';
           filteredCanvas.style.width = `${scale * 10}%`;
+          reRenderImage(filteredCanvas, scale);
           filteredCanvas.ready = true;
         });
       return filteredCanvas;
@@ -892,12 +905,8 @@
         }
         const target = getActive($overlay)[0];
         if (target.ready) {
-          if (scale > 10) {
-            target.style['image-rendering'] = 'pixelated';
-          } else {
-            target.style['image-rendering'] = 'auto';
-          }
           target.style.width = `${scale * 10}%`;
+          reRenderImage(target, scale);
         }
         $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
         setTimeout(() => {
@@ -916,7 +925,7 @@
           const target = getActive($overlay)[0];
           if (target.ready) {
             target.style.width = `${scale * 10}%`;
-            target.style['image-rendering'] = 'auto';
+            reRenderImage(target, scale);
           }
           $message.text(`Zoom: ${parseInt(scale * 10)}%`).css('opacity', '1');
           setTimeout(() => {
